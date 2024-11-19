@@ -15,3 +15,6 @@ Scripts/usage_example.py
 # chromosome file (too big ?)
 Chromosome/
 AnnotationDB/
+
+#AnnotationDB/*
+#!AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz
