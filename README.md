@@ -21,7 +21,7 @@ Please consult the [usage notebook](/Scripts/usage_examples.ipynb) for more info
 # Usage
 See the [usage notebook](/Scripts/usage_examples.ipynb) for a detailed usage description.
 
-Here are few basic usage examples:
+Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder):
 
 Instantiating an annotation object:
 ```python
