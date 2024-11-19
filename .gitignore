@@ -1,0 +1,17 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# old usage script
+Scripts/usage_example.py
+
+# chromosome file (too big ?)
+Chromosome/
+AnnotationDB/

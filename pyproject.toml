@@ -1,0 +1,35 @@
+[project]
+name = "geneanot"
+version = "0.1.0"
+description = "Eukaryotes gene annotation based on Ensembl."
+readme = "README.md"
+authors = [
+    { name = "yoramzarai", email = "yoram.zarai@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
+    "requests>=2.32.3",
+    "xlsxwriter>=3.2.0",
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Homepage = "https://github.com/pypa/geneanot"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
