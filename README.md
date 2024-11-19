@@ -16,10 +16,10 @@ pip install geneanot
 - A designated local folder to hold the Ensembl annotation file
 - Some of the methods (e.g., sequence retrieval methods) require the chromosome Fasta file
 
-Please consult the [usage notebook](/tests/usage_examples.ipynb) for more information.
+Please consult the [usage notebook](/Scripts/usage_examples.ipynb) for more information.
 
 # Usage
-See the [usage notebook](/tests/usage_examples.ipynb) for a detailed usage description.
+See the [usage notebook](/Scripts/usage_examples.ipynb) for a detailed usage description.
 
 Here are few basic usage examples:
 
