@@ -20,9 +20,6 @@ import geneanot.ensembl_utils as eu
 
 """
 GFF3 Type attributes
-"""
-
-"""
 All values in the "Type" column (third column) of the GFF3 file:
 
 ['gene' 'mRNA' 'exon' 'five_prime_UTR' 'CDS' 'three_prime_UTR' 'lnc_RNA'
@@ -31,13 +28,13 @@ All values in the "Type" column (third column) of the GFF3 file:
  'chromosome' 'scRNA' 'C_gene_segment' 'J_gene_segment' 'V_gene_segment'
  'D_gene_segment' 'processed_transcript' 'scaffold' 'tRNA']
 """
-
 # all Type values in GFF3 file
 Gene_type_values: list = ['gene', 'ncRNA_gene', 'pseudogene']
 
 # gene's transcript Types to process
+# added 'transcript', 'unconfirmed_transcript', 'processed_transcript', on 6/5/24
 Types_transcript_processed: list = ['mRNA', 'lnc_RNA', 'pseudogenic_transcript',
-                                    'transcript', 'unconfirmed_transcript', 'processed_transcript',  # added 'transcript', 'unconfirmed_transcript', 'processed_transcript', on 6/5/24
+                                    'transcript', 'unconfirmed_transcript', 'processed_transcript',
                                     'ncRNA', 'miRNA', 'snoRNA', 'snRNA', 'scRNA', 'rRNA', 'tRNA']
 
 # sub-transcript types to process
@@ -398,8 +395,6 @@ def parse_ensembl_gene_anot_gene(df: pd.DataFrame, types_transcript_processed: l
     }
 
 
-#def get_df_start_with_gene(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str,
-#                           str_in_gene_name_for_gene_id_name: str = 'ENSG0', verbose: bool = True) -> pd.DataFrame | None:
 def get_df_start_with_gene(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, verbose: bool = True) -> pd.DataFrame | None:
     """
     The function returns the dataframe where the first row contains Type gene
@@ -408,7 +403,6 @@ def get_df_start_with_gene(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, 
     df - GFF3 file loaded to a dataframe
     df_genes - a subset of df containing only rows with Type values that is in Gene_type_values (see the function load_ensembl_human_gff3_annotation_file)
     """
-    #fld = 'gene_id' if str_in_gene_name_for_gene_id_name in gene else 'Name'
     fld = 'gene_id' if eu.is_id(gene) else 'Name'
     if (df_gene := df_genes.query(f"{fld} == '{gene}'")).empty:
         if verbose:
@@ -428,11 +422,8 @@ def get_df_start_with_gene(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, 
     return df.iloc[i_idx[0]:]
 
 
-#def extract_gene_dict(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, verbose: bool = True,
-#                      str_in_gene_name_for_gene_id_name: str = 'ENSG0') -> dict:
 def extract_gene_dict(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, verbose: bool = True) -> dict:
     """Finds and extracts gene data from GFF3 dataframe."""
-    #if (df_gene_all := get_df_start_with_gene(df, df_genes, gene, verbose=verbose, str_in_gene_name_for_gene_id_name=str_in_gene_name_for_gene_id_name)) is None:
     if (df_gene_all := get_df_start_with_gene(df, df_genes, gene, verbose=verbose)) is None:
         if verbose:
             print(f"No entry for {gene=} found in annotation dataframe!!")
@@ -442,8 +433,7 @@ def extract_gene_dict(df: pd.DataFrame, df_genes: pd.DataFrame, gene: str, verbo
     d = dict([tuple(x.split('=')) for x in df_gene_all.iloc[0]['Attributes'].split(';')])
     try:
         # first_row_gene = d['Name']
-        # update on 6/4/24 - to enable 'gene' to be either a gene name (Hugo symbol) or a gene ID (i.e., ENSG)
-        #first_row_gene = d['Name'] if str_in_gene_name_for_gene_id_name not in gene else d['gene_id']
+        # update on 6/4/24 - to enable 'gene' to be either a gene name (Hugo symbol) or a gene ID (i.e., ENS<species prefix>G, where <species prefix> is empty for Homo sapiens)
         first_row_gene = d['gene_id'] if eu.is_id(gene) else d['Name']
 
     except KeyError:

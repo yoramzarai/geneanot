@@ -1754,7 +1754,7 @@ class Gene_cls(Gene_gff3_cls):
 
     User should use this class.
 
-    gene - either a gene name (HUGO symbol) or a gene ID (ENSG).
+    gene - either a gene name (HUGO symbol) or a gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
     """
     def __init__(self, gene: str, gff3_source: pathlib.Path | tuple, verbose: bool = True) -> None:
         # self.gene: str = gene

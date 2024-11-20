@@ -63,7 +63,7 @@ class REST_API():
     Lookup endpoint
     ===============
     """
-    def lookup_endpoint_base(self, ID: str, typ: str, headers: dict, options: str = 'expand=1;utr=1') -> dict | str:
+    def lookup_endpoint_base(self, ID: str, typ: str, headers: dict, options: str = 'expand=1') -> dict | str:
         """
         Base lookup command.
         options - a ';' separated option=value string. See https://rest.ensembl.org/documentation/info/lookup.
@@ -303,11 +303,6 @@ class REST_API():
             return self.lookup_id(eid)['display_name']
         except KeyError:
             return ''
-
-
-    #def transcript_id2protein_id(self, trans_id: str) -> str:
-    #    """Retrieves the protein ID (ENSP) of a given transcript ID (ENST)."""
-    #    return self.lookup_id(trans_id)['Translation']['id']
 
 
     def transcript_id2protein_id_with_version(self, trans_id: str) -> str:

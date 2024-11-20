@@ -177,7 +177,8 @@ download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annot
                                                                            ensembl_url=ensembl_url)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
-gA = u.Gene_cls('Cntnap1', annotation_full_file, verbose=True)
+# instantiate annotation class (can use gene name or gene ID)
+gA = u.Gene_cls('ENSMUSG00000017167', annotation_full_file, verbose=True)
 gA.info()
 
 print(f"\n{gene} contains {len(gA)} transcripts.")
