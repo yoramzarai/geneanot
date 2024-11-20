@@ -637,7 +637,7 @@ class Transcript_gff3_cls:
         In the returned modified transcript, E_j exon and/or I_k intron are missing if j \notin exon_list
         and/or k \notin intron_list.
 
-        For example, given a trnscript that contains 3 exons: E_1 I_1 E_2 I_2 E_3,
+        For example, given a transcript that contains 3 exons: E_1 I_1 E_2 I_2 E_3,
         then for exon_list=[1,2,3], intron_list = [2], the modified transcript is: E_1 E_2 I_2 E_3.
         As another example, exon_list=[1,2,..n] and intron_list=[] yields the mRNA.
         """
