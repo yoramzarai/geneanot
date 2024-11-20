@@ -23,7 +23,8 @@ For example (see https://rest.ensembl.org/documentation/info/ontology_name):
 from functools import partial, partialmethod
 from requests.exceptions import HTTPError
 
-import rest_api_utils as rsut
+import geneanot.rest_api_utils as rsut
+import geneanot.ensembl_utils as eu
 
 # supported assemblies
 Ensembl_URLs: dict[str, str] = {
@@ -42,11 +43,10 @@ Ensb_seq_types: dict[str, str] = {
 
 # the following implies homo sapiens. To support other species, need to account for the species name.
 # See http://www.ensembl.org/info/genome/stable_ids/prefixes.html
-Ensb_gene_ID_preamble: str = 'ENSG'
-Ensb_transcript_ID_preamble: str = 'ENST'
-Ensb_exon_ID_preamble: str = 'ENSE'
-Ensb_protein_ID_preamble: str = 'ENSP'
-
+#Ensb_gene_ID_preamble: str = 'ENSG'
+#Ensb_transcript_ID_preamble: str = 'ENST'
+#Ensb_exon_ID_preamble: str = 'ENSE'
+#Ensb_protein_ID_preamble: str = 'ENSP'
 
 class REST_API():
     """REST API class."""
@@ -81,7 +81,8 @@ class REST_API():
 
     def get_canonical_transcript(self, gene: str) -> str:
         """Given a gene, returns it 'canonical' transcript by Ensembl. 'gene' can be an ENSG ID or a symbol (e.g., MET)."""
-        return self.lookup_id(gene)['canonical_transcript'] if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)['canonical_transcript']
+        #return self.lookup_id(gene)['canonical_transcript'] if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)['canonical_transcript']
+        return self.lookup_id(gene)['canonical_transcript'] if eu.is_id(gene) else self.lookup_symbol(gene)['canonical_transcript']
 
 
     def get_transcripts_of_gene(self, gene: str) -> dict:
@@ -89,7 +90,8 @@ class REST_API():
         Given a gene (defined by either its ENSG ID or its symbol name (e.g. MET)), the function returns
         a dictionary with keys that are transcript IDs and values that are the biotype.
         """
-        info = self.lookup_id(gene) if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)
+        #info = self.lookup_id(gene) if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)
+        info = self.lookup_id(gene) if eu.is_id(gene) else self.lookup_symbol(gene)
         return {x['id']: x['biotype'] for x in info['Transcript']}
 
 
@@ -101,8 +103,9 @@ class REST_API():
         
         Note that TSS > TES for transcripts encoded on the negative strand, otherwise TSS < TES.
         """
-        if Ensb_transcript_ID_preamble not in trans_id:
-            print(f"get_transcripts_sizes: input ID must be a transcript ID (i.e. a {Ensb_transcript_ID_preamble} ID) and not {trans_id} !!")
+        #if Ensb_transcript_ID_preamble not in trans_id:
+        if not eu.is_id_transcript_id(trans_id):
+            print(f"get_transcripts_sizes: input ID must be a transcript ID and not {trans_id} !!")
             return -1, -1
         info = self.lookup_id(trans_id)
         return (info['start'], info['end']) if info['strand'] == 1 else (info['end'], info['start'])
@@ -115,8 +118,9 @@ class REST_API():
 
         If the transcript is not a protein-coding transcript, the AA size returned is set to -1. 
         """
-        if Ensb_transcript_ID_preamble not in trans_id:
-            print(f"get_transcripts_sizes: input ID must be a transcript ID (i.e. a {Ensb_transcript_ID_preamble} ID) and not {trans_id} !!")
+        #if Ensb_transcript_ID_preamble not in trans_id:
+        if not eu.is_id_transcript_id(trans_id):
+            print(f"get_transcripts_sizes: input ID must be a transcript ID and not {trans_id} !!")
             return -1, -1
         info = self.lookup_id(trans_id)
         aa_len = info['Translation']['length'] if 'Translation' in info else -1
@@ -131,7 +135,8 @@ class REST_API():
 
         If the transcript is not a protein-coding transcript, the AA size returned is set to -1. 
         """
-        info = self.lookup_id(gene) if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)
+        #info = self.lookup_id(gene) if Ensb_gene_ID_preamble in gene else self.lookup_symbol(gene)
+        info = self.lookup_id(gene) if eu.is_id(gene) else self.lookup_symbol(gene)
         return {x['id']: self.get_transcript_sizes(x['id']) for x in info['Transcript']}
 
 
@@ -140,7 +145,8 @@ class REST_API():
         Given a gene (defined by either its ENSG ID or its symbol name (e.g. MET)), the function returns
         1 [-1] if the gene is encoded on the forward [reveresed] DNA strand.
         """
-        return int(self.lookup_id(gene)['strand']) if Ensb_gene_ID_preamble in gene else int(self.lookup_symbol(gene)['strand'])
+        #return int(self.lookup_id(gene)['strand']) if Ensb_gene_ID_preamble in gene else int(self.lookup_symbol(gene)['strand'])
+        return int(self.lookup_id(gene)['strand']) if eu.is_id(gene) else int(self.lookup_symbol(gene)['strand'])
 
 
     def get_transcript_version(self, trans_id: str) -> str:
@@ -183,8 +189,9 @@ class REST_API():
 
     def is_protein_coding(self, trans_id: str) -> bool:
         """Returns True [False] if the transcript ID trans_id is [is not] a coding protein transcript."""
-        if Ensb_transcript_ID_preamble not in trans_id:
-            print(f"Input ({trans_id}) must be a valid transcript ID (i.e. a {Ensb_transcript_ID_preamble} ID) !!")
+        #if Ensb_transcript_ID_preamble not in trans_id:
+        if not eu.is_id_transcript_id(trans_id):
+            print(f"Input ({trans_id}) must be a valid transcript ID !!")
             return False
         return self.lookup_id(trans_id)['biotype'] == 'protein_coding'
 
@@ -221,10 +228,11 @@ class REST_API():
         6. seq_type='protein' to get the protein sequence.
         """
         if 'UTR' in seq_type:
-            if Ensb_transcript_ID_preamble in ID:
+            #if Ensb_transcript_ID_preamble in ID:
+            if eu.is_id_transcript_id(ID):
                 utrs = self.get_UTRs(ID)
                 return utrs[0] if seq_type == '5UTR' else utrs[1]
-            print(f"{seq_type=} allowed only for transcript ID ({Ensb_transcript_ID_preamble}), but input ID is {ID} !!")
+            print(f"{seq_type=} allowed only for transcript ID, but input ID is {ID} !!")
             return ''
         else:
             ext = f"/sequence/id/{ID}?" if seq_type is None else f"/sequence/id/{ID}?type={seq_type}"
@@ -369,7 +377,8 @@ class REST_API():
         Returns:
             tuple[list[str], list[dict]]: [0] is a list of refseq IDs. [1] contains all retreived refseq query.
         """
-        refseq_db = 'RefSeq_mRNA' if Ensb_transcript_ID_preamble in ensb_id else ('RefSeq_peptide' if Ensb_protein_ID_preamble in ensb_id else 'RefSeq')
+        #refseq_db = 'RefSeq_mRNA' if Ensb_transcript_ID_preamble in ensb_id else ('RefSeq_peptide' if Ensb_protein_ID_preamble in ensb_id else 'RefSeq')
+        refseq_db = 'RefSeq_mRNA' if eu.is_id_transcript_id(ensb_id) else ('RefSeq_peptide' if eu.is_id_protein_id(ensb_id) else 'RefSeq')
         if predicted:
             refseq_db += '_predicted'
         if not (response := self.endpoint_get_base(ext=f"/xrefs/id/{ensb_id}?external_db={refseq_db}",
