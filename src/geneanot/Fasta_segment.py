@@ -4,8 +4,7 @@ Efficient Fasta segment retrival.
 """
 import os
 import gzip as gz
-from typing import Callable
-from typing import Generator
+from typing import Callable, Generator
 import numpy as np
 
 

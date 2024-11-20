@@ -18,8 +18,6 @@ For APIs that are not implemented here, use the function endpoint_get_base
 or endpoint_post_base and set the 'ext' parameter (and maybe also 'params', 'headers', and 'data' parameters) accordingly.
 For example (see https://rest.ensembl.org/documentation/info/ontology_name):
          endpoint_get_base(ext="/ontology/name/transcription factor complex?", headers={ "Content-Type" : "application/json"})
-
-Updated on 12/20/23 - using rest_api_utils.py
 """
 
 from functools import partial, partialmethod

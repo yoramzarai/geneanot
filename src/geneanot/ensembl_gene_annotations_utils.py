@@ -85,7 +85,7 @@ def get_gff3_df_gene_type_values(df: pd.DataFrame, gene_type_values: list, type_
     return df_type.merge(d, left_index=True, right_index=True)
 
 def display_gene_annotation_structure(gene_s: dict, transcripts_label: str = 'transcripts'):
-    """display structure"""
+    """Displays structure"""
     for k, v in gene_s.items():
         if k == transcripts_label:
             for i, y in enumerate(v, start=1):

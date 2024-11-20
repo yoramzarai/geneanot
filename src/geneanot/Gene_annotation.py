@@ -4,7 +4,7 @@
 Eukaryotes gene Ensembl annotation.
 
 Based on Ensembl GFF3 annotation file.
-See the GFF3 readme for a description of the different GFF3 fields.
+See the GFF3 readme for a description of the different GFF3 fields,
 for example: https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README
 """
 import pathlib
@@ -34,9 +34,7 @@ Headers in the Human GRCh37.p13 chromosome fasta file.
 
 This is needed if one uses the Fasta_segment class to access 
 sequences in the GRCh37 fasta file, which contains all chromosomes 
-(separated by headers). Currently, for the GRCh37 build
-we have a single fasta file (containing all chromosomes), 
-whereas for the GRCh38 build, we have a fasta file per chromosome.
+(separated by headers).
 
 The headers are:
 
@@ -247,12 +245,12 @@ class Transcript_gff3_cls:
     1. gene name
     2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
        (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
-       Use the function ensembl_gff3_df to generate the tuple if instantiating using the tuple.
+       Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
     3. Optional - verbose flag.
 
     All other class members are set by the __post__init__ method.
 
-    The pharse "transcript" below (in the context of a sequence or content or boundary) refers to
+    The pharse "transcript" below (in the context of a sequence or cof a boundary) refers to
     the primary transcript (pre-RNA sequence).
     """
     gene: str  # gene name or ID specified by the user
@@ -277,7 +275,7 @@ class Transcript_gff3_cls:
     source: str = ''
 
     transcripts_info: dict | None = None  # keys are transcripts, values are transcript details
-    exon_intron_maps: dict | None = None  # keys are transcripts, values are maps in df format
+    exon_intron_maps: dict | None = None  # keys are transcripts, values are maps in dataframe format
 
     __protein_coding_labels_in_biotype: list | None = None
 
@@ -771,12 +769,13 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         self.__create_exon_map()
 
     def __check_transcript_exists(self, transcript_id: str) -> bool:
-        # this also defined in Transcript_gff3_cls, so we can remove from here ???????????
-        if transcript_id in self.transcripts_info:
-            return True
-        if self.verbose:
-            print(f"{transcript_id=} not in {self.gene} transcript list !!.")
-        return False
+        return self._Transcript_gff3_cls__check_transcript_exists(transcript_id)
+    # def __check_transcript_exists(self, transcript_id: str) -> bool:
+    #     if transcript_id in self.transcripts_info:
+    #         return True
+    #     if self.verbose:
+    #         print(f"{transcript_id=} not in {self.gene} transcript list !!.")
+    #     return False
 
     def show_exon_map(self, transcript_id: str):
         """Prints exon map."""
