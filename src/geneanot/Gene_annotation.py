@@ -101,42 +101,42 @@ def chromosome_to_GRCh37_p13_header_name(chrm_num: str) -> str | None:
         print(f"{chrm_num} not a valid chromosome number !!")
         return None
 
-def pull_fasta_seq( fasta_file: str,
-                    start_loc: int,
-                    left_margin: int,
-                    right_margin: int,
-                    rev: bool = False) -> str:
-    """
-    Deprecated - use extract_fasta_seq instead.
+# def pull_fasta_seq( fasta_file: str,
+#                     start_loc: int,
+#                     left_margin: int,
+#                     right_margin: int,
+#                     rev: bool = False) -> str:
+#     """
+#     Deprecated - use extract_fasta_seq instead.
 
-    This function pulls a sequence from a fasta file. The sequence may
-    correspond to either a positive strand or a negative strand, where the fasta
-    file is assumed to be the positive strand fasta.
+#     This function pulls a sequence from a fasta file. The sequence may
+#     correspond to either a positive strand or a negative strand, where the fasta
+#     file is assumed to be the positive strand fasta.
 
-    This function can be used only with Fasta files where ALL rows
-    (excluding the headers, and possibly the last row) have the same number of characters!
+#     This function can be used only with Fasta files where ALL rows
+#     (excluding the headers, and possibly the last row) have the same number of characters!
 
-    start_loc - index of first NT of the sequence of interest (without the margins).
-                1 corresponds to the first NT in the fasta file.
-    rev - False for positive strand, True for negative strand. In case of rev==True,
-          the sequence read from the (positive strand) fasta is reversed-complemented.
-    left_margin - number of extra NTs from the left of start_loc (after converting
-                  to the positive strand in case of rev=1).
-    right_margin - number of extra NTs from the right of start_loc (after converting
-                  to the positive strand in case of rev=1).
+#     start_loc - index of first NT of the sequence of interest (without the margins).
+#                 1 corresponds to the first NT in the fasta file.
+#     rev - False for positive strand, True for negative strand. In case of rev==True,
+#           the sequence read from the (positive strand) fasta is reversed-complemented.
+#     left_margin - number of extra NTs from the left of start_loc (after converting
+#                   to the positive strand in case of rev=1).
+#     right_margin - number of extra NTs from the right of start_loc (after converting
+#                   to the positive strand in case of rev=1).
 
-    Let x := start_loc-1, DNA denote the (positive-strand) Fasta sequence, and assume 0-base
-    indexing (i.e. DNA[0] is the first NT in the Fasta sequence). Then:
-    1. In case of rev=False: the extracted sequence is DNA[x-left_margin:x+right_margin]
-    2. In case of rev=True: the extracted sequence is reverse_complement( DNA[x-right_margin:x+left_margin] )
+#     Let x := start_loc-1, DNA denote the (positive-strand) Fasta sequence, and assume 0-base
+#     indexing (i.e. DNA[0] is the first NT in the Fasta sequence). Then:
+#     1. In case of rev=False: the extracted sequence is DNA[x-left_margin:x+right_margin]
+#     2. In case of rev=True: the extracted sequence is reverse_complement( DNA[x-right_margin:x+left_margin] )
 
-    The output sequence size is right_margin+left_margin+1
-    """
-    offset = (start_loc - 1) - (right_margin if rev else left_margin)
-    seq = Fasta_segment().read_segment(
-        fasta_file, offset, left_margin + right_margin + 1
-    )
-    return tran.reverse_complement(seq) if rev else seq
+#     The output sequence size is right_margin+left_margin+1
+#     """
+#     offset = (start_loc - 1) - (right_margin if rev else left_margin)
+#     seq = Fasta_segment().read_segment(
+#         fasta_file, offset, left_margin + right_margin + 1
+#     )
+#     return tran.reverse_complement(seq) if rev else seq
 
 def extract_fasta_seq(
         fasta_file: str,
@@ -162,13 +162,13 @@ def extract_fasta_seq(
     seq = Fasta_segment().read_segment(fasta_file, start_p-1, end_p - start_p + 1)
     return tran.reverse_complement(seq) if rev else seq
 
-
 def extract_chromosome_seq(
         chrm: str,  # without 'chr' prefix, e.g., '3', or 'X'
         start_p: int,
         end_p: int,
         rev: bool = False,
-        assembly: str = 'GRCh38'
+        assembly: str = 'GRCh38',
+        species: str = 'homo_sapiens'
         ) -> str:
     """Extracts a chromosome sequence using Ensembl REST API.
 
@@ -189,7 +189,7 @@ def extract_chromosome_seq(
     from geneanot.ensembl_rest_utils import REST_API
 
     strand = -1 if rev else 1
-    return REST_API(assembly=assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, content_type='text/plain')
+    return REST_API(assembly=assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, species=species, content_type='text/plain')
 
 def get_sequence_from_start_end_segments(start: list, end: list, rev: bool, chrm_path: str, offset: int = 0) -> str:
     """
@@ -374,6 +374,20 @@ class Transcript_gff3_cls:
 
         # creates exon-intron map for each transcript. This populates self.exon_intron_maps
         self.__create_exon_intron_map()
+
+    # # DEBUG
+    def _extract_sequence(self, start_p: int, end_p: int, rev: bool = False) -> str:
+        """ 
+        Changes:
+        1. Two new variables: self._species: str = 'homo_sapiens', and self.chrm_file: str | None = None.
+        2. User can set _species only when instantiating the class. User can set chrm_file on instantiation 
+        but also can change during usage (by gA.chrm_file = <chromosome file> or gA.chrm_file = None, where gA is the object).
+        3. All methods (and other functions in this file) that require to access the chromosome file use this function.
+        """
+        chrm_file: str | None = None  # this should be self.chrm_file, which is init to None, implying default behavior is using REST to fetch sequences.
+        _species: str = 'homo_sapiens' # this should be self._species
+        _assembly: str = 'GRCh38'  # this should be self._assembly
+        return extract_chromosome_seq(self.chrm, start_p, end_p, species=_species, assembly=_assembly, rev=rev) if chrm_file is None else extract_fasta_seq(chrm_file, start_p, end_p, rev=rev)
 
     def __len__(self) -> int:
         "Number of transcripts."
