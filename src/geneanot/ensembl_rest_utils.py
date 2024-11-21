@@ -63,7 +63,7 @@ class REST_API():
     Lookup endpoint
     ===============
     """
-    def lookup_endpoint_base(self, ID: str, typ: str, headers: dict, options: str = 'expand=1') -> dict | str:
+    def lookup_endpoint_base(self, ID: str, typ: str, headers: dict, options: str = 'expand=1;utr=1') -> dict | str:
         """
         Base lookup command.
         options - a ';' separated option=value string. See https://rest.ensembl.org/documentation/info/lookup.
