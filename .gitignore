@@ -17,5 +17,6 @@ Scripts/usage_example.py
 Chromosome/
 
 #AnnotationDB/
+# only the Homo sapiens annotation file
 AnnotationDB/*
 !AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz

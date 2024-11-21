@@ -107,6 +107,8 @@ def pull_fasta_seq( fasta_file: str,
                     right_margin: int,
                     rev: bool = False) -> str:
     """
+    Deprecated - use extract_fasta_seq instead.
+
     This function pulls a sequence from a fasta file. The sequence may
     correspond to either a positive strand or a negative strand, where the fasta
     file is assumed to be the positive strand fasta.
@@ -136,6 +138,59 @@ def pull_fasta_seq( fasta_file: str,
     )
     return tran.reverse_complement(seq) if rev else seq
 
+def extract_fasta_seq(
+        fasta_file: str,
+        start_p: int,   # 1-based
+        end_p: int,  # 1-based
+        rev: bool = False) -> str:
+    """
+    Extracts a Fasta sequence.
+
+    This function can be used only with Fasta files where ALL rows
+    (excluding the headers, and possibly the last row) have the same number of characters!
+
+    Args:
+        fasta_file (str): Fasta file name.
+        start_p (int): 1-based start position
+        end_p (int): 1-based end position
+        rev (bool, optional): True to get the reveresed-complement sequence (i.e. the sequence in the negative strand). Defaults to False.
+
+    Returns:
+        str: The extracted sequence.
+    """
+    # read_segment gets 0-based position, and size of the sequence
+    seq = Fasta_segment().read_segment(fasta_file, start_p-1, end_p - start_p + 1)
+    return tran.reverse_complement(seq) if rev else seq
+
+
+def extract_chromosome_seq(
+        chrm: str,  # without 'chr' prefix, e.g., '3', or 'X'
+        start_p: int,
+        end_p: int,
+        rev: bool = False,
+        assembly: str = 'GRCh38'
+        ) -> str:
+    """Extracts a chromosome sequence using Ensembl REST API.
+
+    Currently not used. 
+    For future option to use Ensembl REST API. This will eliminate the need of chromosome Fasta files,
+    but will require a network connection (and probably a slower sequences retrival).
+
+    Args:
+        chrm (str): chromosome number. E.g., '1' or 'X'.
+        start_p (int): 1-based start position.
+        end_p (int): 1-based end position.
+        assembly (str, optional): Used assembly. Defaults to 'GRCh38'.
+        rev (bool, optional): True to get the reveresed-complement sequence (i.e. the sequence in the negative strand). Defaults to False.
+
+    Returns:
+        str: The extracted sequence.
+    """
+    from geneanot.ensembl_rest_utils import REST_API
+
+    strand = -1 if rev else 1
+    return REST_API(assembly=assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, content_type='text/plain')
+
 def get_sequence_from_start_end_segments(start: list, end: list, rev: bool, chrm_path: str, offset: int = 0) -> str:
     """
     Get the chromosome sequence, at the corresponding strand (based on rev input) from
@@ -148,7 +203,8 @@ def get_sequence_from_start_end_segments(start: list, end: list, rev: bool, chrm
     a_start, a_end = (end[::-1], start[::-1]) if rev else (start, end)
     seq = "".join(
         [
-            pull_fasta_seq(chrm_path, a_s, 0, a_e - a_s, False)
+            #pull_fasta_seq(chrm_path, a_s, 0, a_e - a_s, False)
+            extract_fasta_seq(chrm_path, a_s, a_e, rev=False)
             for a_s, a_e in zip(a_start, a_end)
         ]
     )
@@ -595,7 +651,8 @@ class Transcript_gff3_cls:
         # for rev=True, transc_start [transc_end] is the end [start] of the transcript on the negative strand
         (transc_start, transc_end) = (te, ts) if self.rev else (ts, te)
 
-        seq = pull_fasta_seq(chrm_path, transc_start, 0, transc_end - transc_start, False)
+        #seq = pull_fasta_seq(chrm_path, transc_start, 0, transc_end - transc_start, False)
+        seq = extract_fasta_seq(chrm_path, transc_start, transc_end, rev=False)
 
         return tran.reverse_complement(seq) if self.rev else seq
 
@@ -619,7 +676,8 @@ class Transcript_gff3_cls:
             return None
 
         region = df_q.iloc[0]['region']
-        seq = pull_fasta_seq(chrm_path, np.min(region), 0, np.abs(region[1]-region[0]), rev=False)
+        #seq = pull_fasta_seq(chrm_path, np.min(region), 0, np.abs(region[1]-region[0]), rev=False)
+        seq = extract_fasta_seq(chrm_path, np.min(region), np.max(region), rev=False)
         if self.rev:
             seq = tran.reverse_complement(seq)
 
@@ -687,7 +745,8 @@ class Transcript_gff3_cls:
                 "region": "_".join(df_pos.iloc[0]["name"].split()),
                 "region_pos": abs(chrm_pos - df_pos.iloc[0]["region"][0]) + 1,
             } | (
-                {"bp": pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)}
+                #{"bp": pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)}
+                {"bp": extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)}
                 if chrm_path is not None
                 else {}
             )
@@ -713,7 +772,8 @@ class Transcript_gff3_cls:
             return None
         if chrm_path is not None:
             # 1-based position
-            return tmp[-1] + 1, pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)
+            #return tmp[-1] + 1, pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)
+            return tmp[-1] + 1, extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)
         return tmp[-1] + 1
 
     def rna_pos2chrm_pos(self, transcript_id: str, pos: int, chrm_path: str = None) -> int | tuple[int, str] | None:
@@ -743,7 +803,8 @@ class Transcript_gff3_cls:
         chrm_pos = exon_start[exon_index] - offset if self.rev else exon_start[exon_index] + offset
 
         #return     (chrm_pos, pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)) if chrm_path is not None else chrm_pos  # original
-        return (int(chrm_pos), pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)) if chrm_path is not None else chrm_pos  # YZ, 11/14/24
+        #return (int(chrm_pos), pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)) if chrm_path is not None else chrm_pos  # YZ, 11/14/24
+        return (int(chrm_pos), extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)) if chrm_path is not None else chrm_pos
 
     def __repr__(self):
         return f"Transcript_gff3_cls(gene={self.gene}, gff3_source=gff3_file|(gff3_df, gff3_df_gene_type))"
