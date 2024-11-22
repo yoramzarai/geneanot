@@ -15,7 +15,7 @@ pip install geneanot
 # Requirements
 A designated local folder is required to hold the Ensembl annotation file.
 
-Please consult the [usage notebook](/Scripts/usage_examples.ipynb) for more information.
+Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
 ## Chromosome Data
 Two chromosome data access modes are supported:
@@ -27,10 +27,10 @@ Two chromosome data access modes are supported:
 The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal bps per rows in all sequence
 rows (other than possibly the last row). Ensembl chromosome Fasta files comply with this.
 
-Please consult the [usage notebook](/Scripts/usage_examples.ipynb) for more information.
+Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
 # Usage
-See the [usage notebook](/Scripts/usage_examples.ipynb) for a detailed usage description.
+See the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for a detailed usage description.
 
 Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder):
 
@@ -207,7 +207,7 @@ Annotating other Eukaryotes Species
 species: str = 'mus_musculus'
 
 # Annotation file signature
-annotation_file_signature: str = 'Mus_musculus.GRCm39.XXX.gff3.gz'
+annotation_file_signature: str = f'{species.capitalize()}.GRCm39.XXX.gff3.gz'
 
 # Ensembl FTP URL
 ensembl_url: str = f'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/{species}'
