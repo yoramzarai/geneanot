@@ -17,6 +17,7 @@ from openpyxl.styles import Font
 from geneanot.Fasta_segment import Fasta_segment
 import geneanot.translation as tran
 import geneanot.ensembl_gene_annotations_utils as egna
+from geneanot.ensembl_rest_utils import REST_API
 
 
 def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -29,115 +30,6 @@ def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[
         gene_type_values = egna.Gene_type_values 
     return egna.load_ensembl_human_gff3_annotation_file(file, gene_type_values)
 
-"""
-Headers in the Human GRCh37.p13 chromosome fasta file.
-
-This is needed if one uses the Fasta_segment class to access 
-sequences in the GRCh37 fasta file, which contains all chromosomes 
-(separated by headers).
-
-The headers are:
-
-    >NC_000001.10 Homo sapiens chromosome 1, GRCh37.p13 Primary Assembly
-    >NC_000002.11 Homo sapiens chromosome 2, GRCh37.p13 Primary Assembly
-    >NC_000003.11 Homo sapiens chromosome 3, GRCh37.p13 Primary Assembly
-    >NC_000004.11 Homo sapiens chromosome 4, GRCh37.p13 Primary Assembly
-    >NC_000005.9 Homo sapiens chromosome 5, GRCh37.p13 Primary Assembly
-    >NC_000006.11 Homo sapiens chromosome 6, GRCh37.p13 Primary Assembly
-    >NC_000007.13 Homo sapiens chromosome 7, GRCh37.p13 Primary Assembly
-    >NC_000008.10 Homo sapiens chromosome 8, GRCh37.p13 Primary Assembly
-    >NC_000009.11 Homo sapiens chromosome 9, GRCh37.p13 Primary Assembly
-    >NC_000010.10 Homo sapiens chromosome 10, GRCh37.p13 Primary Assembly
-    >NC_000011.9 Homo sapiens chromosome 11, GRCh37.p13 Primary Assembly
-    >NC_000012.11 Homo sapiens chromosome 12, GRCh37.p13 Primary Assembly
-    >NC_000013.10 Homo sapiens chromosome 13, GRCh37.p13 Primary Assembly
-    >NC_000014.8 Homo sapiens chromosome 14, GRCh37.p13 Primary Assembly
-    >NC_000015.9 Homo sapiens chromosome 15, GRCh37.p13 Primary Assembly
-    >NC_000016.9 Homo sapiens chromosome 16, GRCh37.p13 Primary Assembly
-    >NC_000017.10 Homo sapiens chromosome 17, GRCh37.p13 Primary Assembly
-    >NC_000018.9 Homo sapiens chromosome 18, GRCh37.p13 Primary Assembly
-    >NC_000019.9 Homo sapiens chromosome 19, GRCh37.p13 Primary Assembly
-    >NC_000020.10 Homo sapiens chromosome 20, GRCh37.p13 Primary Assembly
-    >NC_000021.8 Homo sapiens chromosome 21, GRCh37.p13 Primary Assembly
-    >NC_000022.10 Homo sapiens chromosome 22, GRCh37.p13 Primary Assembly
-    >NC_000023.10 Homo sapiens chromosome X, GRCh37.p13 Primary Assembly
-    >NC_000024.9 Homo sapiens chromosome Y, GRCh37.p13 Primary Assembly
-"""
-GRCh37_p13_header_names = {
-    "1": "NC_000001.10",
-    "2": "NC_000002.11",
-    "3": "NC_000003.11",
-    "4": "NC_000004.11",
-    "5": "NC_000005.9",
-    "6": "NC_000006.11",
-    "7": "NC_000007.13",
-    "8": "NC_000008.10",
-    "9": "NC_000009.11",
-    "10": "NC_000010.10",
-    "11": "NC_000011.9",
-    "12": "NC_000012.11",
-    "13": "NC_000013.10",
-    "14": "NC_000014.8",
-    "15": "NC_000015.9",
-    "16": "NC_000016.9",
-    "17": "NC_000017.10",
-    "18": "NC_000018.9",
-    "19": "NC_000019.9",
-    "20": "NC_000020.10",
-    "21": "NC_000021.8",
-    "22": "NC_000022.10",
-    "X": "NC_000023.10",
-    "Y": "NC_000024.9",
-}
-
-def chromosome_to_GRCh37_p13_header_name(chrm_num: str) -> str | None:
-    """
-    Converts a chromosome number to the corresponding header name in
-    the GRCh37.p13 chromosome fasta file.
-    """
-    try:
-        return GRCh37_p13_header_names[str(chrm_num)]
-    except KeyError:
-        print(f"{chrm_num} not a valid chromosome number !!")
-        return None
-
-# def pull_fasta_seq( fasta_file: str,
-#                     start_loc: int,
-#                     left_margin: int,
-#                     right_margin: int,
-#                     rev: bool = False) -> str:
-#     """
-#     Deprecated - use extract_fasta_seq instead.
-
-#     This function pulls a sequence from a fasta file. The sequence may
-#     correspond to either a positive strand or a negative strand, where the fasta
-#     file is assumed to be the positive strand fasta.
-
-#     This function can be used only with Fasta files where ALL rows
-#     (excluding the headers, and possibly the last row) have the same number of characters!
-
-#     start_loc - index of first NT of the sequence of interest (without the margins).
-#                 1 corresponds to the first NT in the fasta file.
-#     rev - False for positive strand, True for negative strand. In case of rev==True,
-#           the sequence read from the (positive strand) fasta is reversed-complemented.
-#     left_margin - number of extra NTs from the left of start_loc (after converting
-#                   to the positive strand in case of rev=1).
-#     right_margin - number of extra NTs from the right of start_loc (after converting
-#                   to the positive strand in case of rev=1).
-
-#     Let x := start_loc-1, DNA denote the (positive-strand) Fasta sequence, and assume 0-base
-#     indexing (i.e. DNA[0] is the first NT in the Fasta sequence). Then:
-#     1. In case of rev=False: the extracted sequence is DNA[x-left_margin:x+right_margin]
-#     2. In case of rev=True: the extracted sequence is reverse_complement( DNA[x-right_margin:x+left_margin] )
-
-#     The output sequence size is right_margin+left_margin+1
-#     """
-#     offset = (start_loc - 1) - (right_margin if rev else left_margin)
-#     seq = Fasta_segment().read_segment(
-#         fasta_file, offset, left_margin + right_margin + 1
-#     )
-#     return tran.reverse_complement(seq) if rev else seq
-
 def extract_fasta_seq(
         fasta_file: str,
         start_p: int,   # 1-based
@@ -146,7 +38,7 @@ def extract_fasta_seq(
     """
     Extracts a Fasta sequence.
 
-    This function can be used only with Fasta files where ALL rows
+    This function can be used ONLY with Fasta files where ALL rows
     (excluding the headers, and possibly the last row) have the same number of characters!
 
     Args:
@@ -167,48 +59,25 @@ def extract_chromosome_seq(
         start_p: int,
         end_p: int,
         rev: bool = False,
-        assembly: str = 'GRCh38',
-        species: str = 'homo_sapiens'
+        species: str = 'homo_sapiens',
+        assembly: str = 'GRCh38'
         ) -> str:
     """Extracts a chromosome sequence using Ensembl REST API.
-
-    Currently not used. 
-    For future option to use Ensembl REST API. This will eliminate the need of chromosome Fasta files,
-    but will require a network connection (and probably a slower sequences retrival).
 
     Args:
         chrm (str): chromosome number. E.g., '1' or 'X'.
         start_p (int): 1-based start position.
         end_p (int): 1-based end position.
-        assembly (str, optional): Used assembly. Defaults to 'GRCh38'.
-        rev (bool, optional): True to get the reveresed-complement sequence (i.e. the sequence in the negative strand). Defaults to False.
+        rev (bool, optional): True to extract the reveresed-complement sequence 
+                             (i.e. the sequence in the negative strand). Defaults to False.
+        species (str, optional): Defaults to 'homo_sapiens'.
+        assembly (str, optional): Determines the REST URL. Defaults to 'GRCh38'.
 
     Returns:
         str: The extracted sequence.
     """
-    from geneanot.ensembl_rest_utils import REST_API
-
     strand = -1 if rev else 1
     return REST_API(assembly=assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, species=species, content_type='text/plain')
-
-def get_sequence_from_start_end_segments(start: list, end: list, rev: bool, chrm_path: str, offset: int = 0) -> str:
-    """
-    Get the chromosome sequence, at the corresponding strand (based on rev input) from
-    the concatenation of segments defined by start and end list.
-
-    rev == True  implies start[i]>end[i], start[j]<start[i], end[j]<end[i], for j>i.
-    rev == False implies start[i]<end[i], start[j]>start[i], end[j]>end[i], for j>1.
-    """
-    # convert to increasing lists
-    a_start, a_end = (end[::-1], start[::-1]) if rev else (start, end)
-    seq = "".join(
-        [
-            #pull_fasta_seq(chrm_path, a_s, 0, a_e - a_s, False)
-            extract_fasta_seq(chrm_path, a_s, a_e, rev=False)
-            for a_s, a_e in zip(a_start, a_end)
-        ]
-    )
-    return tran.reverse_complement(seq)[offset:] if rev else seq[offset:]
 
 def pos2seg_info(pos: int, seg_start: list, seg_end: list, rev: bool) -> tuple[int, int, int] | None:
     """
@@ -297,12 +166,21 @@ class Transcript_gff3_cls:
 
     This is basically the base class for the gene annotation class.
 
+    The class supports two chromosome data access modes:
+    1. local - user provides the corresponding chromosome Fasta file.
+    2. remote - the class uses the Ensembl REST API to extract sequence from the chromosome.
+
+    In case of a local access mode, the provided Fasta file MUST contain equal bps per rows in all sequence
+    rows (other than possibly the last row).
+
     Instantiating this class requires the following inputs:
     1. gene name
     2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
        (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
        Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
     3. Optional - verbose flag.
+    4. Optional - species
+    5. Optional - chromosome Fasta file.
 
     All other class members are set by the __post__init__ method.
 
@@ -311,7 +189,12 @@ class Transcript_gff3_cls:
     """
     gene: str  # gene name or ID specified by the user
     gff3_source: pathlib.Path | tuple  # Ensembl GFF3 file, or a tuple of the GFF3 dataframe and its gene type subset
+    species: str = 'homo_sapiens'  # needed when using remote chromosome sequence extraction
+    chrm_fasta_file: str | None = None  # if None using remote sequence extraction, otherwise using this chromosome fasta file
     verbose: bool = True  # set to False at instantiation to suppress prints
+
+    # user should not set this. Upon a new REST URL, I need to chnage this.
+    _assembly: str = 'GRCh38'
 
     # these are set by the __post_init__ method.
     gff3_df: pd.DataFrame | None = None
@@ -375,19 +258,27 @@ class Transcript_gff3_cls:
         # creates exon-intron map for each transcript. This populates self.exon_intron_maps
         self.__create_exon_intron_map()
 
-    # # DEBUG
+    def access_mode(self) -> str:
+        """Chromosome data access mode."""
+        return 'remote' if self.chrm_fasta_file is None else 'local'
+
     def _extract_sequence(self, start_p: int, end_p: int, rev: bool = False) -> str:
-        """ 
-        Changes:
-        1. Two new variables: self._species: str = 'homo_sapiens', and self.chrm_file: str | None = None.
-        2. User can set _species only when instantiating the class. User can set chrm_file on instantiation 
-        but also can change during usage (by gA.chrm_file = <chromosome file> or gA.chrm_file = None, where gA is the object).
-        3. All methods (and other functions in this file) that require to access the chromosome file use this function.
+        """Extracts sequence from teh chromosome.
+
+        Args:
+        start_p (int): 1-based start position.
+        end_p (int): 1-based end position.
+        rev (bool, optional): True to extract the reveresed-complement sequence 
+                             (i.e. the sequence in the negative strand). Defaults to False.
+    Returns:
+        str: The extracted sequence.
         """
-        chrm_file: str | None = None  # this should be self.chrm_file, which is init to None, implying default behavior is using REST to fetch sequences.
-        _species: str = 'homo_sapiens' # this should be self._species
-        _assembly: str = 'GRCh38'  # this should be self._assembly
-        return extract_chromosome_seq(self.chrm, start_p, end_p, species=_species, assembly=_assembly, rev=rev) if chrm_file is None else extract_fasta_seq(chrm_file, start_p, end_p, rev=rev)
+        # if self.chrm_fasta_file is None:
+        if self.access_mode() == 'remote':
+            # use remote chromosome file via Ensembl REST API
+            return extract_chromosome_seq(self.chrm, start_p, end_p, rev=rev, species=self.species, assembly=self._assembly)
+        # use local fasta file
+        return extract_fasta_seq(self.chrm_fasta_file, start_p, end_p, rev=rev)
 
     def __len__(self) -> int:
         "Number of transcripts."
@@ -404,7 +295,6 @@ class Transcript_gff3_cls:
         """Returns True [False] is transcript_id is [is not] a protein coding transcript."""
         if not self.__check_transcript_exists(transcript_id):
             return False
-
         try:
             return (
                 self.transcripts_info[transcript_id]["transcript_biotype"]
@@ -652,10 +542,9 @@ class Transcript_gff3_cls:
         t_info = self.transcripts_info[transcript_id]
         return t_info["transcript_start"], t_info["transcript_end"]
 
-    def seq(self, transcript_id: str, chrm_path: str) -> str | None:
+    def seq(self, transcript_id: str) -> str | None:
         """
         Generates the (primary) transcript sequence.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row.
         """
         if not self.__check_transcript_exists(transcript_id):
             return None
@@ -665,12 +554,11 @@ class Transcript_gff3_cls:
         # for rev=True, transc_start [transc_end] is the end [start] of the transcript on the negative strand
         (transc_start, transc_end) = (te, ts) if self.rev else (ts, te)
 
-        #seq = pull_fasta_seq(chrm_path, transc_start, 0, transc_end - transc_start, False)
-        seq = extract_fasta_seq(chrm_path, transc_start, transc_end, rev=False)
-
+        #seq = extract_fasta_seq(chrm_path, transc_start, transc_end, rev=False)
+        seq = self._extract_sequence(transc_start, transc_end, rev=False)
         return tran.reverse_complement(seq) if self.rev else seq
 
-    def exon_intron_seq(self, name: str, number: int, transcript_id: str, chrm_path: str) -> tuple[str, str] | None:
+    def exon_intron_seq(self, name: str, number: int, transcript_id: str) -> tuple[str, str] | None:
         """
         Returns the sequence corresponding to exon (if name=='Exon') or intron (if name=='Intron') number <number>,
         (1 for first exon/intron), and the lable which contains <name>_<number>:<chromosome>:<start 1-based position>:<end 1-based position>.
@@ -690,14 +578,14 @@ class Transcript_gff3_cls:
             return None
 
         region = df_q.iloc[0]['region']
-        #seq = pull_fasta_seq(chrm_path, np.min(region), 0, np.abs(region[1]-region[0]), rev=False)
-        seq = extract_fasta_seq(chrm_path, np.min(region), np.max(region), rev=False)
+        #seq = extract_fasta_seq(chrm_path, np.min(region), np.max(region), rev=False)
+        seq = self._extract_sequence(np.min(region), np.max(region), rev=False)
         if self.rev:
             seq = tran.reverse_complement(seq)
 
         return seq, f"{name}_{number}:chr{self.chrm}:{region[0]}:{region[1]}"
 
-    def modified_transcript(self, exon_list: list, intron_list: list, transcript_id: str, chrm_path: str) -> str | None:
+    def modified_transcript(self, exon_list: list, intron_list: list, transcript_id: str) -> str | None:
         """
         Generates a modified (primary) transcript.
 
@@ -729,13 +617,13 @@ class Transcript_gff3_cls:
         list_info = {'Exon': exon_list, 'Intron': intron_list}
         return ''.join(
             [
-                self.exon_intron_seq(name, index, transcript_id, chrm_path)[0] if index in list_info[name] else ''
+                self.exon_intron_seq(name, index, transcript_id)[0] if index in list_info[name] else ''
                 for index in range(1, num_exons+1)
                 for name in ['Exon', 'Intron']
             ]
         )
 
-    def chrm_pos_info(self, transcript_id: str, chrm_pos: int, chrm_path: str | None) -> dict | None:
+    def chrm_pos_info(self, transcript_id: str, chrm_pos: int) -> dict | None:
         """
         Given a 1-based chromosome position, the function returns
         the dictionary {'region': <the name of the region containing chrm_pos position>,
@@ -758,43 +646,29 @@ class Transcript_gff3_cls:
             return {
                 "region": "_".join(df_pos.iloc[0]["name"].split()),
                 "region_pos": abs(chrm_pos - df_pos.iloc[0]["region"][0]) + 1,
-            } | (
-                #{"bp": pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)}
-                {"bp": extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)}
-                if chrm_path is not None
-                else {}
-            )
+            } | {"bp": self._extract_sequence(chrm_pos, chrm_pos, rev=self.rev)}
         print(f"Chromosome position {chrm_pos:,} out of {transcript_id} bound.")
         return None
 
-    def chrm_pos2rna_pos(self, transcript_id: str, chrm_pos: int, chrm_path: str = None) -> int | tuple[int, str] | None:
+    def chrm_pos2rna_pos(self, transcript_id: str, chrm_pos: int) -> tuple[int, str] | None:
         """
         Given a 1-based chromosome position, then if the position is within the exons, the function returns
         the corresponding 1-based position within the RNA sequence (i.e. the corresponding 1-based position
-        within a sequence that contains all exons), and, if chrm_path is given by the user, the corresponding
+        within a sequence that contains all exons), and the corresponding
         bp value. If the chromosome position is outside the exons, the function returns None.
         """
         if not self.__check_transcript_exists(transcript_id):
             return None
 
         t_info = self.transcripts_info[transcript_id]
-        if (
-            tmp := pos2seg_info(
-                chrm_pos, t_info["exon_start"], t_info["exon_end"], self.rev
-            )
-        ) is None:
+        if (tmp := pos2seg_info(chrm_pos, t_info["exon_start"], t_info["exon_end"], self.rev)) is None:
             return None
-        if chrm_path is not None:
-            # 1-based position
-            #return tmp[-1] + 1, pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)
-            return tmp[-1] + 1, extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)
-        return tmp[-1] + 1
+        return tmp[-1] + 1, self._extract_sequence(chrm_pos, chrm_pos, rev=self.rev)
 
-    def rna_pos2chrm_pos(self, transcript_id: str, pos: int, chrm_path: str = None) -> int | tuple[int, str] | None:
+    def rna_pos2chrm_pos(self, transcript_id: str, pos: int) -> tuple[int, str] | None:
         """
         Given a 1-base RNA position pos, the function returns its corresponding chromosome coordinate.
         If pos is outsize the RNA size, the returned valiue is -1.
-        If chrm_path is given, the function also returns the RNA value at that position.
         """
         if not self.__check_transcript_exists(transcript_id):
             return None
@@ -806,7 +680,7 @@ class Transcript_gff3_cls:
         csum = np.insert(np.cumsum(exon_sizes), 0, 0)  # [0, len(exon1), len(exon1)+len(exon2), ..]
 
         if pos < 1 or pos > csum[-1]:
-            return -1  # out of range
+            return -1, ''  # out of range
 
         # index of exon containing RNA position pos
         #exon_index =  np.array([csum[i] < pos <= csum[i+1] for i in range(csum.shape[0]-1)]).nonzero()[0][0]  # original (result in a lint error)
@@ -816,9 +690,8 @@ class Transcript_gff3_cls:
         offset = pos - (csum[exon_index] + 1)
         chrm_pos = exon_start[exon_index] - offset if self.rev else exon_start[exon_index] + offset
 
-        #return     (chrm_pos, pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)) if chrm_path is not None else chrm_pos  # original
-        #return (int(chrm_pos), pull_fasta_seq(chrm_path, chrm_pos, 0, 0, self.rev)) if chrm_path is not None else chrm_pos  # YZ, 11/14/24
-        return (int(chrm_pos), extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)) if chrm_path is not None else chrm_pos
+        # return (int(chrm_pos), extract_fasta_seq(chrm_path, chrm_pos, chrm_pos, rev=self.rev)) if chrm_path is not None else int(chrm_pos)
+        return (int(chrm_pos), self._extract_sequence(chrm_pos, chrm_pos, rev=self.rev))
 
     def __repr__(self):
         return f"Transcript_gff3_cls(gene={self.gene}, gff3_source=gff3_file|(gff3_df, gff3_df_gene_type))"
@@ -845,12 +718,25 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
     def __check_transcript_exists(self, transcript_id: str) -> bool:
         return self._Transcript_gff3_cls__check_transcript_exists(transcript_id)
-    # def __check_transcript_exists(self, transcript_id: str) -> bool:
-    #     if transcript_id in self.transcripts_info:
-    #         return True
-    #     if self.verbose:
-    #         print(f"{transcript_id=} not in {self.gene} transcript list !!.")
-    #     return False
+
+    def get_sequence_from_start_end_segments(self, start: list[int], end: list[int], rev: bool, offset: int = 0) -> str:
+        """
+        Get the chromosome sequence, at the corresponding strand (based on rev input) from
+        the concatenation of segments defined by start and end list.
+
+        rev == True  implies start[i]>end[i], start[j]<start[i], end[j]<end[i], for j>i.
+        rev == False implies start[i]<end[i], start[j]>start[i], end[j]>end[i], for j>1.
+        """
+        # convert to increasing lists
+        a_start, a_end = (end[::-1], start[::-1]) if rev else (start, end)
+        seq = "".join(
+            [
+                #extract_fasta_seq(chrm_path, a_s, a_e, rev=False)
+                self._extract_sequence(a_s, a_e, rev=rev)
+                for a_s, a_e in zip(a_start, a_end)
+            ]
+        )
+        return tran.reverse_complement(seq)[offset:] if rev else seq[offset:]
 
     def show_exon_map(self, transcript_id: str):
         """Prints exon map."""
@@ -1154,34 +1040,37 @@ class Gene_gff3_cls(Transcript_gff3_cls):
             'end' : {'exon_number': tmp_end[0] + 1, 'exon_offset': tmp_end[1]},
         }
 
-    def rna(self, transcript_id: str, chrm_path: str) -> str | None:
-        """Generates the RNA nucleotide sequence of a transcript.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row."""
+    def rna(self, transcript_id: str) -> str | None:
+        """Generates the RNA nucleotide sequence of a transcript."""
         if not self.__check_transcript_exists(transcript_id):
             return None
 
         t_info = self.transcripts_info[transcript_id]
-        return get_sequence_from_start_end_segments(
-            t_info["exon_start"], t_info["exon_end"], self.rev, chrm_path
-        )
+        # return get_sequence_from_start_end_segments(t_info["exon_start"], t_info["exon_end"], self.rev, chrm_path)
+        return self.get_sequence_from_start_end_segments(t_info["exon_start"], t_info["exon_end"], self.rev)
         # return tran.DNA2RNA(
         #    get_sequence_from_start_end_segments(t_info['exon_start'], t_info['exon_end'], self.rev, chrm_path)
         # )
 
-    def ORF(self, transcript_id: str, chrm_path: str) -> str | None:
-        """Generates the ORF nucleotide sequence of a transcript.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row."""
+    def ORF(self, transcript_id: str) -> str | None:
+        """Generates the ORF nucleotide sequence of a transcript."""
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
             return None
 
         t_info = self.transcripts_info[transcript_id]
         orf_offset = t_info["CDS_phase"][0]
-        return get_sequence_from_start_end_segments(
+        # return get_sequence_from_start_end_segments(
+        #     t_info["CDS_start"],
+        #     t_info["CDS_end"],
+        #     self.rev,
+        #     chrm_path,
+        #     offset=orf_offset,
+        # )
+        return self.get_sequence_from_start_end_segments(
             t_info["CDS_start"],
             t_info["CDS_end"],
             self.rev,
-            chrm_path,
             offset=orf_offset,
         )
         # return tran.DNA2RNA(
@@ -1189,42 +1078,37 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         #                                         offset=orf_offset)
         # )
 
-    def AA(self, transcript_id: str, chrm_path: str) -> str | None:
-        """Generates the amino-acid sequence of a transcript.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row."""
+    def AA(self, transcript_id: str) -> str | None:
+        """Generates the amino-acid sequence of a transcript."""
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
             return None
 
-        orf = self.ORF(transcript_id, chrm_path)[:-1]  # remove the stop codon
+        orf = self.ORF(transcript_id)[:-1]  # remove the stop codon
         return tran.convert_aa_32IUPAC(tran.translate(orf))
 
-    def UTR5(self, transcript_id: str, chrm_path: str) -> str | None:
-        """Generates the 5'UTR nucleotide sequence of a transcript.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row."""
+    def UTR5(self, transcript_id: str) -> str | None:
+        """Generates the 5'UTR nucleotide sequence of a transcript."""
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
             return None
 
         t_info = self.transcripts_info[transcript_id]
-        return get_sequence_from_start_end_segments(
-            t_info["5UTR_start"], t_info["5UTR_end"], self.rev, chrm_path
-        )
+        # return get_sequence_from_start_end_segments(t_info["5UTR_start"], t_info["5UTR_end"], self.rev, chrm_path)
+        return self.get_sequence_from_start_end_segments(t_info["5UTR_start"], t_info["5UTR_end"], self.rev)
         # return tran.DNA2RNA(
         #    get_sequence_from_start_end_segments(t_info['5UTR_start'], t_info['5UTR_end'], self.rev, chrm_path)
         # )
 
-    def UTR3(self, transcript_id: str, chrm_path: str) -> str | None:
-        """Generates the 3'UTR nucleotide sequence of a transcript.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row."""
+    def UTR3(self, transcript_id: str) -> str | None:
+        """Generates the 3'UTR nucleotide sequence of a transcript."""
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
             return None
 
         t_info = self.transcripts_info[transcript_id]
-        return get_sequence_from_start_end_segments(
-            t_info["3UTR_start"], t_info["3UTR_end"], self.rev, chrm_path
-        )
+        # return get_sequence_from_start_end_segments(t_info["3UTR_start"], t_info["3UTR_end"], self.rev, chrm_path)
+        return self.get_sequence_from_start_end_segments(t_info["3UTR_start"], t_info["3UTR_end"], self.rev)
         # return tran.DNA2RNA(
         #    get_sequence_from_start_end_segments(t_info['3UTR_start'], t_info['3UTR_end'], self.rev, chrm_path)
         # )
@@ -1234,7 +1118,6 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         Given an exon number and a nucleotide number within the exon (all 1-based), the function returns
         the segment type that the nucleotide belongs to (i.e. '5UTR', 'ORF', or '3UTR'),
         and the 1-based position of the nucleotide within that segment.
-        chrm_path must point to a chromosome fasta file with equal number of bps per row.
         """
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
@@ -1278,10 +1161,8 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         return segment, pos_in_segment
 
-    def exon_nt_info(self, transcript_id: str, exon_number: int, nt_number: int, chrm_path: str) -> dict | None:
+    def exon_nt_info(self, transcript_id: str, exon_number: int, nt_number: int) -> dict | None:
         """
-        chrm_path must point to a chromosome fasta file with equal number of bps per row.
-
         Given an exon number and a nucleotide number within the exon (all 1-based), the function returns
         the following information about the nucleotide:
         1. The segment it belongs to (i.e. 5UTR, ORF or 3UTR).
@@ -1306,8 +1187,8 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         match segment:
             case "5UTR" | "3UTR":
-                utr5 = self.UTR5(transcript_id, chrm_path)
-                utr3 = self.UTR3(transcript_id, chrm_path)
+                utr5 = self.UTR5(transcript_id)
+                utr3 = self.UTR3(transcript_id)
                 nt = (
                     utr5[pos_in_segment - 1]
                     if segment == "5UTR"
@@ -1316,7 +1197,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
                 info |= {"NT": nt}
             case "ORF":
-                orf = self.ORF(transcript_id, chrm_path)
+                orf = self.ORF(transcript_id)
                 nt = orf[pos_in_segment - 1]
 
                 # codon number and nt position in codon (all 0-based)
@@ -1339,7 +1220,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         return info
 
-    def chrm_pos_info(self, transcript_id: str, chrm_pos: int, chrm_path: str) -> dict | None:
+    def chrm_pos_info(self, transcript_id: str, chrm_pos: int) -> dict | None:
         """
         If position in intron, provides chrm_pos_info() of the Transcript_gff3_cls method.
         If position in exon, provides the details in exon_nt_info() method in addition to
@@ -1347,31 +1228,29 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         chrm_pos - 1-based position in the chromosome.
         """
-        if (base_info := super().chrm_pos_info(transcript_id, chrm_pos, chrm_path)) is None:
+        if (base_info := super().chrm_pos_info(transcript_id, chrm_pos)) is None:
             return None
 
         reg_type, reg_num = base_info["region"].split("_")
         if reg_type == "Exon":
-            base_info |= self.exon_nt_info(transcript_id, int(reg_num), base_info["region_pos"], chrm_path)
+            base_info |= self.exon_nt_info(transcript_id, int(reg_num), base_info["region_pos"])
             # base info contain 'bp' (from exon_nt_info) and 'NT' (from chrm_pos_info), which are the same
             base_info.pop('bp', None)
 
         return base_info
 
-    def rna_pos2chrm_info(self, transcript_id: str, rna_pos: int, chrm_path: str) -> dict | None:
+    def rna_pos2chrm_info(self, transcript_id: str, rna_pos: int) -> dict | None:
         """
         Given a 1-based RNA position rna_pos, the function returns the details 
         in exon_nt_info() method in addition to chromosome position from the 
         menthod rna_pos2chrm_pos() of the Transcript_gff3_cls method.
         """
-        if (a := super().rna_pos2chrm_pos(transcript_id, rna_pos, chrm_path)) == -1:
+        if (a := super().rna_pos2chrm_pos(transcript_id, rna_pos)) == -1:
             return None
-        return {'chrm_pos': a[0]} | self.chrm_pos_info(transcript_id, a[0], chrm_path)
+        return {'chrm_pos': a[0]} | self.chrm_pos_info(transcript_id, a[0])
 
-    def aa_exon_info(self, transcript_id: str, aa_number: int, chrm_path: str) -> dict | None:
+    def aa_exon_info(self, transcript_id: str, aa_number: int) -> dict | None:
         """
-        chrm_path must point to a chromosome fasta file with equal number of bps per row.
-
         Given an AA (1-based) position within the chain of AA (ORF), the function returns
         the following information:
         1. The corresponding codon
@@ -1381,17 +1260,21 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         4. The 1-based position of each NT of the codon in the chromosome
         5. The 1-based position of each NT of the codon in the mRNA
         """
+        # added YZ, 11/14/24
+        def check_pos(x: pd.Series, p: int):
+            return x["mRNA_NT_region"][0] <= p <= x["mRNA_NT_region"][1]
+        
         if not self.is_protein_coding_transcript(transcript_id):
             print(f"{transcript_id} is not a protein coding transcript !!")
             return None
 
-        aa = self.AA(transcript_id, chrm_path)
+        aa = self.AA(transcript_id)
 
         if not 1 <= aa_number <= len(aa):
             print(f"AA position {aa_number} out of bound (transcript contains {len(aa)} AAs) !!")
             return None
 
-        orf = self.ORF(transcript_id, chrm_path)
+        orf = self.ORF(transcript_id)
         codon = orf[(aa_number - 1) * 3 : aa_number * 3]
 
         info = {"codon": codon, "AA": aa[aa_number - 1]}
@@ -1406,10 +1289,6 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         # pos here is actually an offset, thus +1, and +2 hold regardless of self.rev
         mrna_poss = [mrna_start_pos, mrna_start_pos + 1, mrna_start_pos + 2]
         pos_info, chrm_info = [], []
-
-        # added YZ, 11/14/24
-        def check_pos(x: pd.Series, p: int):
-            return x["mRNA_NT_region"][0] <= p <= x["mRNA_NT_region"][1]
 
         for pos in mrna_poss:
             # original:
@@ -1437,7 +1316,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         # exon_pos in pos_info corresponds to exon_start-exon_pos+1 chromosome coordinate
         return info | {"codon_exon_pos": pos_info, "codon_chromosome_pos": chrm_info, 'mrna_pos': mrna_poss}
 
-    def AA_mut_to_DNA_SNP_mut(self, aa_mut: str, transcript_id: str, chrm_path: str) -> dict | None:
+    def AA_mut_to_DNA_SNP_mut(self, aa_mut: str, transcript_id: str) -> dict | None:
         """
         Given a mutation in an amino-acid (aa_mut), in the format:
           <reference AA><AA 1-based position in ORF><mutated AA> (e.g. 'C231S'),
@@ -1462,7 +1341,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         if aa_r == aa_m:
             return None  # no mutation
 
-        if (aa_info := self.aa_exon_info(transcript_id, aa_pos, chrm_path)) is None:
+        if (aa_info := self.aa_exon_info(transcript_id, aa_pos)) is None:
             return None  # aa_pos not valid
 
         if aa_r != aa_info["AA"]:
@@ -1588,7 +1467,6 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         dna_mut_allele: str,
         dna_chrm_pos: int,
         transcript_id: str,
-        chrm_path: str,
     ) -> str | None:
         """
         Given a DNA mutation within the ORF, defined by:
@@ -1623,7 +1501,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
             (dna_chrm_pos + len(dna_mut_allele) - 1) if self.rev else dna_chrm_pos
         )
 
-        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos, chrm_path)) is None:
+        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos)) is None:
             return None  # dna_chrm_pos or transcript_id is invalid
         if "segment" not in seg_info or seg_info["segment"] != "ORF":
             return None  # DNA mutation is not in the ORF.
@@ -1669,7 +1547,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         return f"{mut_aa_ref}{mut_aa_pos}{mut_aa_mut}"
 
-    def DNA_INS_mut_to_affected_AA(self, dna_mut_allele: str, dna_chrm_pos: int, transcript_id: str, chrm_path: str) -> dict | None:
+    def DNA_INS_mut_to_affected_AA(self, dna_mut_allele: str, dna_chrm_pos: int, transcript_id: str) -> dict | None:
         """
         Given an insertion mutation, defined by its (exclusive) chromosome (1-based) position and the
         positive strand insertion bps, the function returns a dictionary with key, value:
@@ -1716,7 +1594,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         strand_chrm_pos = (dna_chrm_pos + 1) if self.rev else dna_chrm_pos
 
-        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos, chrm_path)) is None:
+        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos)) is None:
             return None  # dna_chrm_pos or transcript_id is invalid
         if "segment" not in seg_info or seg_info["segment"] != "ORF":
             return None  # DNA mutation is not in the ORF.
@@ -1746,7 +1624,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
             "num_DS_affected_aa": num_ds_affected_aa,
         }
 
-    def DNA_DEL_mut_to_affected_AA(self, dna_ref_allele: str, dna_chrm_pos: int, transcript_id: str, chrm_path: str) -> dict | None:
+    def DNA_DEL_mut_to_affected_AA(self, dna_ref_allele: str, dna_chrm_pos: int, transcript_id: str) -> dict | None:
         """
         Given a deletion mutation, defined by its (inclusive) chromosome (1-based) position on the
         chromosome (dna_chrm_pos), and the deleted sequence from the positive strand
@@ -1793,7 +1671,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
 
         # note: if strand_pos_pos is outside of the ORF, but some of the bps deleted are within,
         # then the following will result in None, even though there is an effect on the ORF.
-        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos, chrm_path)) is None:
+        if (seg_info := self.chrm_pos_info(transcript_id, strand_chrm_pos)) is None:
             return None  # dna_chrm_pos or transcript_id is invalid
         if "segment" not in seg_info or seg_info["segment"] != "ORF":
             return None  # DNA mutation is not in the ORF.
@@ -1831,18 +1709,11 @@ class Gene_cls(Gene_gff3_cls):
 
     gene - either a gene name (HUGO symbol) or a gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
     """
-    def __init__(self, gene: str, gff3_source: pathlib.Path | tuple, verbose: bool = True) -> None:
-        # self.gene: str = gene
-        # self.gff3_source:  pathlib.Path | tuple = gff3_source  # Ensembl GFF3 file, or a tuple of the GFF3 dataframe and its gene type subset
-        # self.verbose: bool = verbose
-        # super().__init__(gene, gff3_source)  # YZ - added this on 11/13/24
-        # #super().__post_init__()
-
-        #self.gene: str = gene
-        #self.gff3_source:  pathlib.Path | tuple = gff3_source  # Ensembl GFF3 file, or a tuple of the GFF3 dataframe and its gene type subset
-        #self.verbose: bool = verbose
-        super().__init__(gene, gff3_source, verbose=verbose)  # YZ - added this on 11/13/24
-        #super().__post_init__()
+    def __init__(self, gene: str, gff3_source: pathlib.Path | tuple, 
+                 species: str = 'homo_sapiens',
+                 chrm_fasta_file: str | None = None,
+                 verbose: bool = True) -> None:
+        super().__init__(gene, gff3_source, species=species, chrm_fasta_file=chrm_fasta_file, verbose=verbose)
 
     def __repr__(self) -> str:
         return f"Gene_cls('{self.gene}, gff3_file|(gff3_df, gff3_df_gene_type)')"

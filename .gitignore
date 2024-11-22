@@ -21,7 +21,7 @@ Chromosome/
 AnnotationDB/*
 !AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz
 
-# new version - testing
-src/geneanot/Gene_annotation_V2.py
-Scripts/usage_examples_V2.ipynb
-Scripts/usage_example_V2.py
+# old versions
+src/geneanot/old_ver_Gene_annotation.py
+Scripts/old_ver_usage_examples.ipynb
+Scripts/old_ver_usage_example.py
