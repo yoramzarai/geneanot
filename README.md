@@ -209,14 +209,11 @@ species: str = 'mus_musculus'
 # Annotation file signature
 annotation_file_signature: str = f'{species.capitalize()}.GRCm39.XXX.gff3.gz'
 
-# Ensembl FTP URL
-ensembl_url: str = f'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/{species}'
-
 # update/download annotation file
 download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annotation_folder, 
                                                                            enable_download=True, 
                                                                            gff3_pattern=annotation_file_signature,
-                                                                           ensembl_url=ensembl_url)
+                                                                           species=species)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
 # instantiate annotation class (can use gene name or gene ID) in remote mode (see above for local mode)

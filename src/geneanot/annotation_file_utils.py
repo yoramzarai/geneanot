@@ -69,7 +69,8 @@ def report_annotation_files_in_folder_and_in_ensembl(local_gff3_folder: pathlib.
 def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
                                    enable_download: bool,
                                    gff3_pattern: str = 'Homo_sapiens.GRCh38.XXX.gff3.gz',
-                                   ensembl_url: str = 'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/homo_sapiens') -> tuple[bool, str, str]:
+                                   species: str = 'homo_sapiens',
+                                   ) -> tuple[bool, str, str]:
     """Checks local GFF3 annotation file version vs Ensembl latest version, and downloads Ensembl's file if needed (and download is enabled).
 
     1. Chceks for annotation files in local folder and report.
@@ -81,7 +82,7 @@ def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
     Args:
         local_gff3_folder (pathlib.Path): local folder holding (or to hold) GFF3 annotation files.
         gff3_pattern (str, optional): GFF3 file pattern. Defaults to 'Homo_sapiens.GRCh38.XXX.gff3.gz', where XXX is a place holder for Ensembl version.
-        ensembl_url (str, optional): Ensembl FTP URL. Defaults to 'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/homo_sapiens'.
+        species (str, optional): Defaults to 'homo_sapiens'.
 
     Returns:
         tuple[bool, str, str]: [0] - True if downloaded the latest Ensembl GFF3 file to local folder, otherwise False.
@@ -107,6 +108,7 @@ def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
         print("Ensembl and local versions match.")
         return False, ensembl_gff3_latest_file, local_gff3_max_ver_file
 
+    ensembl_url: str = f'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/{species}'
     # cases to consider now are no local version, or local version < ensembl version
     if (max_local_version is None) or enable_download:
         # no local version, or (local version < ensembl version and enable_download == True). Thus need to download Ensembl file
