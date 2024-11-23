@@ -17,9 +17,10 @@ Scripts/usage_example.py
 Chromosome/
 
 #AnnotationDB/
-# only the Homo sapiens annotation file
+# only the Homo sapiens and Mus musculus annotation files
 AnnotationDB/*
 !AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz
+!AnnotationDB/Mus_musculus.GRCm39.113.gff3.gz
 
 # old versions
 src/geneanot/old_ver_Gene_annotation.py
