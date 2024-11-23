@@ -25,9 +25,17 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/pypa/geneanot"
 
+[tool.pytest.ini_options]
+pythonpath = "src"  # allows to import from src in the tests/*.py file
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+]
 
 #[dependency-groups]
 #dev = [
