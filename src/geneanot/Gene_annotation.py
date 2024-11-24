@@ -30,6 +30,17 @@ def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[
         gene_type_values = egna.Gene_type_values 
     return egna.load_ensembl_human_gff3_annotation_file(file, gene_type_values)
 
+def suggested_annotation_file_name(species: str = 'homo_sapiens', file_type: str = 'gff3', assembly: str = 'GRCh38') -> tuple[str,str,str] | None:
+    """Retruns the annotation file name based on the latest Ensembl release, and the provided species and file_type."""
+    rapi = REST_API(assembly=assembly)
+    try:
+        assembly_name = rapi.get_assembly_info(species=species)["default_coord_system_version"]
+        release_number = str(rapi.get_release_info()['releases'][0])
+    except KeyError as ke:
+        print(f"Error in retreiving assembly and release informtion: {ke}")
+        return None
+    return f"{species.capitalize()}.{assembly_name}.{release_number}.{file_type}.gz", assembly_name, release_number
+
 def extract_fasta_seq(
         fasta_file: str,
         start_p: int,   # 1-based
@@ -174,7 +185,7 @@ class Transcript_gff3_cls:
     rows (other than possibly the last row).
 
     Instantiating this class requires the following inputs:
-    1. gene name
+    1. gene name or gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
     2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
        (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
        Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
@@ -1707,7 +1718,14 @@ class Gene_cls(Gene_gff3_cls):
 
     User should use this class.
 
-    gene - either a gene name (HUGO symbol) or a gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
+    Instantiating this class requires the following inputs:
+    1. gene name or gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
+    2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
+       (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
+       Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
+    3. Optional - verbose flag.
+    4. Optional - species
+    5. Optional - chromosome Fasta file.
     """
     def __init__(self, gene: str, gff3_source: pathlib.Path | tuple, 
                  species: str = 'homo_sapiens',

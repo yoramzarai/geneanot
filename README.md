@@ -18,7 +18,7 @@ A designated local folder is required to hold the Ensembl annotation file.
 Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
 ## Chromosome Data
-Two chromosome data access modes are supported:
+Two chromosome data **access modes** are supported:
 - `local` - user provides the corresponding chromosome Fasta file
 - `remote` - the package uses the Ensembl REST API to extract sequence from the chromosome
 
@@ -205,6 +205,10 @@ Annotating other Eukaryotes Species
 # Example: Mus_musculus
 
 species: str = 'mus_musculus'
+
+# The suggest annotation file name
+suggest_annotation_file_name, _, release_n = u.suggested_annotation_file_name(species=species)
+print(f"Suggested annotation file name: {suggest_annotation_file_name}. To set the annotation_file_signature, change the release numnber ({release_n}) to 'XXX': {suggest_annotation_file_name.replace(release_n, 'XXX')}")
 
 # Annotation file signature
 annotation_file_signature: str = f'{species.capitalize()}.GRCm39.XXX.gff3.gz'

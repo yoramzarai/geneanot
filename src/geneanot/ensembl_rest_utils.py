@@ -172,13 +172,21 @@ class REST_API():
         return self.endpoint_get_base(ext="/info/data/?", headers={"Content-Type" : content_type})
 
 
-    def get_assembly_info(self, ext: str = "/info/assembly/homo_sapiens?", content_type: str = 'application/json', params: dict = None) -> dict | str:
+    # def get_assembly_info(self, ext: str = "/info/assembly/homo_sapiens?", content_type: str = 'application/json', params: dict = None) -> dict | str:
+    #     """Get assembly information."""
+    #     return self.endpoint_get_base(ext=ext, headers={"Content-Type" : content_type}, params=params)
+
+    def get_assembly_info(self, species: str = "homo_sapiens", content_type: str = 'application/json', params: dict = None) -> dict | str:
         """Get assembly information."""
-        return self.endpoint_get_base(ext=ext, headers={"Content-Type" : content_type}, params=params)
+        return self.endpoint_get_base(ext=f"/info/assembly/{species}?", headers={"Content-Type" : content_type}, params=params)
 
+    # def get_assembly_chromosome_info(self, chrm_num: str, ext: str = "/info/assembly/homo_sapiens", content_type: str = 'application/json', params: dict = None) -> dict | str:
+    #     """Get assembly information of a given chromosome. chrm_num is a single character (e.g., '1', or 'X')."""
+    #     return self.endpoint_get_base(ext=f"{ext}/{chrm_num.upper()}", headers={"Content-Type" : content_type}, params=params)
 
-    def get_assembly_chromosome_info(self, chrm_num: str, ext: str = "/info/assembly/homo_sapiens", content_type: str = 'application/json', params: dict = None) -> dict | str:
+    def get_assembly_chromosome_info(self, chrm_num: str, species: str = "homo_sapiens", content_type: str = 'application/json', params: dict = None) -> dict | str:
         """Get assembly information of a given chromosome. chrm_num is a single character (e.g., '1', or 'X')."""
+        ext = f"/info/assembly/{species}"
         return self.endpoint_get_base(ext=f"{ext}/{chrm_num.upper()}", headers={"Content-Type" : content_type}, params=params)
 
 
