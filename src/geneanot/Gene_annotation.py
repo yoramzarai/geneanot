@@ -30,9 +30,9 @@ def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[
         gene_type_values = egna.Gene_type_values 
     return egna.load_ensembl_human_gff3_annotation_file(file, gene_type_values)
 
-def suggested_annotation_file_name(species: str = 'homo_sapiens', file_type: str = 'gff3', assembly: str = 'GRCh38') -> tuple[str,str,str] | None:
+def suggested_annotation_file_name(species: str = 'homo_sapiens', file_type: str = 'gff3', rest_assembly: str = 'GRCh38') -> tuple[str,str,str] | None:
     """Retruns the annotation file name based on the latest Ensembl release, and the provided species and file_type."""
-    rapi = REST_API(assembly=assembly)
+    rapi = REST_API(assembly=rest_assembly)
     try:
         assembly_name = rapi.get_assembly_info(species=species)["default_coord_system_version"]
         release_number = str(rapi.get_release_info()['releases'][0])
@@ -71,7 +71,7 @@ def extract_chromosome_seq(
         end_p: int,
         rev: bool = False,
         species: str = 'homo_sapiens',
-        assembly: str = 'GRCh38'
+        rest_assembly: str = 'GRCh38'
         ) -> str:
     """Extracts a chromosome sequence using Ensembl REST API.
 
@@ -88,7 +88,7 @@ def extract_chromosome_seq(
         str: The extracted sequence.
     """
     strand = -1 if rev else 1
-    return REST_API(assembly=assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, species=species, content_type='text/plain')
+    return REST_API(assembly=rest_assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, species=species, content_type='text/plain')
 
 def pos2seg_info(pos: int, seg_start: list, seg_end: list, rev: bool) -> tuple[int, int, int] | None:
     """
@@ -204,8 +204,8 @@ class Transcript_gff3_cls:
     chrm_fasta_file: str | None = None  # if None using remote sequence extraction, otherwise using this chromosome fasta file
     verbose: bool = True  # set to False at instantiation to suppress prints
 
-    # user should not set this. Upon a new REST URL, I need to chnage this.
-    _assembly: str = 'GRCh38'
+    # user should not set this. I need to change this when a new REST API URL is available.
+    _rest_assembly: str = 'GRCh38'
 
     # these are set by the __post_init__ method.
     gff3_df: pd.DataFrame | None = None
@@ -287,7 +287,7 @@ class Transcript_gff3_cls:
         # if self.chrm_fasta_file is None:
         if self.access_mode() == 'remote':
             # use remote chromosome file via Ensembl REST API
-            return extract_chromosome_seq(self.chrm, start_p, end_p, rev=rev, species=self.species, assembly=self._assembly)
+            return extract_chromosome_seq(self.chrm, start_p, end_p, rev=rev, species=self.species, rest_assembly=self._rest_assembly)
         # use local fasta file
         return extract_fasta_seq(self.chrm_fasta_file, start_p, end_p, rev=rev)
 
