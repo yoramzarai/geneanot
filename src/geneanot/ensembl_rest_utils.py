@@ -49,7 +49,10 @@ Ensb_seq_types: dict[str, str] = {
 #Ensb_protein_ID_preamble: str = 'ENSP'
 
 class REST_API():
-    """REST API class."""
+    """REST API class.
+    
+    assembly - used to select the REST API URL.
+    """
     def __init__(self, assembly: str = 'GRCh38'):
         try:
             self.URL = Ensembl_URLs[assembly]

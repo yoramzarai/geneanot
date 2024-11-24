@@ -2,6 +2,9 @@ from pathlib import Path
 import pytest
 import geneanot.Gene_annotation as ga
 
+
+# Homo sapiens 
+# ============
 @pytest.mark.parametrize(
     "gene, expected",
     [
@@ -27,6 +30,21 @@ def test_gene_transcript_protein_seq(gene: str, transcript: str, expected_partia
     annotation_full_file: Path = Path("AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz")
     g = ga.Gene_cls(gene, annotation_full_file, species="homo_sapiens", verbose=False)
     #g.chrm_fasta_file = (f"Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.{g.chrm}.fa")
+    if (protein_seq := g.AA(transcript)) is None:
+        raise ValueError
+    assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
+
+# Mus musculus 
+# ============
+@pytest.mark.parametrize(
+    "gene, transcript, expected_partial_protein_seq",
+    [
+        ("Cntnap1", "ENSMUST00000103109", "MMSLRLFSILLATVVSGAWGWGYYGCNEELVGPLYARSLGASSYYGLFTTARFARLHGISGWSPRIGDPNPWLQIDLMKKHRIRAVATQGAFNSWDWVTRYMLLYGDRVDSWTPFYQKGHN"),
+    ],
+)
+def test_mouse_gene_transcript_protein_seq(gene: str, transcript: str, expected_partial_protein_seq: str) -> None:
+    annotation_full_file: Path = Path("AnnotationDB/Mus_musculus.GRCm39.113.gff3.gz")
+    g = ga.Gene_cls(gene, annotation_full_file, species="mus_musculus", verbose=False)
     if (protein_seq := g.AA(transcript)) is None:
         raise ValueError
     assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
