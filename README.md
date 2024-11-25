@@ -236,3 +236,11 @@ print(df.to_string())
 aa_seq = gA.AA(transcript_id)
 print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 ```
+
+## Transcript and mRNA Tables
+The transcript table lists the exons and introns in the transcript. See [here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png) for a partial transcript table of the transcript `ENST00000275493`.
+
+The mRNA table maps lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF on the exons
+See ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png) for the mRNA table of the transcript `ENST00000275493`.
+
+<img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png" width="128"/>
