@@ -2,12 +2,13 @@
 
 A Python package that annotates eukaryotes genes and transcripts based on Ensembl.
 
-# Python Version
-Python>=3.10.
+Requires Python>=3.10.
+
+# Species
+`geneanot` supports all eukaryotes species.
 
 # Installing
-
-GeneAnot is available on PyPI:
+`geneanot` is available on PyPI:
 ```console
 pip install geneanot
 ```
@@ -18,13 +19,13 @@ A designated local folder is required to hold the Ensembl annotation file.
 Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
 ## Chromosome Data
-Two chromosome data **access modes** are supported:
+Some of the methods require the chromosome sequence data. Two chromosome data **access modes** are supported:
 - `local` - user provides the corresponding chromosome Fasta file
-- `remote` - the package uses the Ensembl REST API to extract sequence from the chromosome
+- `remote` - `genenot` uses the Ensembl REST API to extract sequence from the chromosome
 
 `local` access implies faster sequence retrival from the chromosome, whereas `remote` access requires network connection and implies a slower sequence retrival.
 
-The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal bps per rows in all sequence
+The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal bps per row in all sequence
 rows (other than possibly the last row). Ensembl chromosome Fasta files comply with this.
 
 Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
@@ -46,10 +47,10 @@ Annotation_folder: Path = Path('./../AnnotationDB')
 download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annotation_folder, enable_download=True)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
-# instantiate annotation class (can use gene name or gene ID) in remote mode
+# instantiate annotation class (can use gene name or gene ID) in remote access mode
 gA = u.Gene_cls('EGFR', annotation_full_file, species='homo_sapiens', verbose=True)
 
-# or - instantiate annotation class (can use gene name or gene ID) in local mode
+# or - instantiate annotation class (can use gene name or gene ID) in local access mode
 chrm_fasta_file: str = 'Homo_sapiens.GRCh38.dna_sm.chromosome.7.fa'  # change to your path
 gA = u.Gene_cls('EGFR', annotation_full_file, species='homo_sapiens', chrm_fasta_file=chrm_fasta_file, verbose=True)
 ```
@@ -68,11 +69,11 @@ print(f"\nGene start = {gA.gene_start:,}, gene end = {gA.gene_end:,}")
 
 print(f"{gene=} encoded on the {'negative' if gA.rev else 'positive'} DNA strand.")
 
-# the various gene attributes above are available using gA
+# the various gene attributes printed from the above commands are also available via gA
 print(gA.gene_name, gA.gene_ID, gA.gene_desc, gA.gene_type, gA.gene_ver, gA.rev, gA.chrm, gA.gene_start, gA.gene_end, len(gA.transcripts_info), sep='\n')
 ```
 
-Annotation of a transcript:
+Transcript annotation:
 ```python
 # show transcript basic information
 gA.transcript_info('ENST00000275493', verbose=True)
@@ -82,7 +83,7 @@ t_info = gA.transcripts_info[transcript_id]
 print(t_info['transcript_name'], t_info['transcript_v_id'], t_info['transcript_ver'])
 ```
 
-Transcript and mRNA tables
+Transcript and mRNA tables:
 ```python
 # Transcript table
 df = gA.exon_intron_map(transcript_id)
@@ -103,7 +104,7 @@ gA.exon_map_to_excel(transcript_id, './../Reports/mRNA_table.xlsx', usr_desc={"D
 gA.exon_map_to_html(transcript_id, './../Reports/mRNA_table.html')
 ```
 
-Sequences
+Sequences:
 ```python
 pre_mRNA_seq = gA.seq(transcript_id).upper()
 print(f"pre-mRNA contains {len(pre_mRNA_seq):,} bps.")
@@ -136,7 +137,7 @@ m_seq = gA.modified_transcript(use_exon_list, use_intron_list, transcript_id)
 print(f"\nA modified transcript containing exons {', '.join(map(str,use_exon_list))} and introns {', '.join(map(str,use_intron_list))} contains {len(m_seq.upper()):,} bps.")
 ```
 
-Queries
+Queries:
 ```python
 # query a chromosome position
 chrm_pos: int = 55_157_663
@@ -144,7 +145,7 @@ chrm_pos: int = 55_157_663
 chrm_info = gA.chrm_pos_info(transcript_id, chrm_pos)
 print(chrm_info)
 
-# query RNA position
+# query a RNA position
 rna_pos: int = 685
 # ----------------
 chrm_info = gA.rna_pos2chrm_info(transcript_id, rna_pos)
@@ -185,7 +186,7 @@ for i, (codon, var_info) in enumerate(dna_all_muts.items(), start=1):
 ```
 
 
-Annotating multiple genes (faster instantiation)
+Annotating multiple genes (faster instantiation):
 ```python
 # parse annotation file into annotation dataframes
 gff3_dfs = u.ensembl_gff3_df(annotation_full_file)  
@@ -200,13 +201,13 @@ g_a3 = u.Gene_cls('IDH1', gff3_dfs)
 g_a3.info()
 ```
 
-Annotating other Eukaryotes Species
+Annotating other Eukaryotes Species:
 ```python
 # Example: Mus_musculus
 
 species: str = 'mus_musculus'
 
-# The suggest annotation file name
+# The suggest annotation file name - informative
 suggest_annotation_file_name, _, release_n = u.suggested_annotation_file_name(species=species)
 print(f"Suggested annotation file name: {suggest_annotation_file_name}. To set the annotation_file_signature, change the release numnber ({release_n}) to 'XXX': {suggest_annotation_file_name.replace(release_n, 'XXX')}")
 
@@ -220,7 +221,7 @@ download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annot
                                                                            species=species)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
-# instantiate annotation class (can use gene name or gene ID) in remote mode (see above for local mode)
+# instantiate annotation class (can use gene name or gene ID) in remote mode (see above for local mode example)
 gA = u.Gene_cls('ENSMUSG00000017167', annotation_full_file, species=species, verbose=True)
 gA.info()
 

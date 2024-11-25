@@ -198,8 +198,8 @@ class Transcript_gff3_cls:
     The pharse "transcript" below (in the context of a sequence or cof a boundary) refers to
     the primary transcript (pre-RNA sequence).
     """
-    gene: str  # gene name or ID specified by the user
-    gff3_source: pathlib.Path | tuple  # Ensembl GFF3 file, or a tuple of the GFF3 dataframe and its gene type subset
+    gene: str  # gene name or gene ID
+    gff3_source: pathlib.Path | tuple  # Ensembl GFF3 file name, or a tuple of the GFF3 dataframe and its gene type subset
     species: str = 'homo_sapiens'  # needed when using remote chromosome sequence extraction
     chrm_fasta_file: str | None = None  # if None using remote sequence extraction, otherwise using this chromosome fasta file
     verbose: bool = True  # set to False at instantiation to suppress prints
@@ -480,26 +480,26 @@ class Transcript_gff3_cls:
                     start=1,
                 ):
                     print(
-                        f"\t{i}. {start:,} - {end:,}, ID={eid}, phase={ep}, end phase={eep}"
+                        f"\t{i:2}. {start:,} - {end:,}, ID={eid}, phase={ep}, end phase={eep}"
                     )
 
                 print("CDS regions:")
                 for i, (start, end, p) in enumerate(
                     zip(t["CDS_start"], t["CDS_end"], t["CDS_phase"]), start=1
                 ):
-                    print(f"\t{i}. {start:,} - {end:,}, phase={p}")
+                    print(f"\t{i:2}. {start:,} - {end:,}, phase={p}")
 
                 print("5UTR regions:")
                 for i, (start, end) in enumerate(
                     zip(t["5UTR_start"], t["5UTR_end"]), start=1
                 ):
-                    print(f"\t{i}. {start:,} - {end:,}")
+                    print(f"\t{i:2}. {start:,} - {end:,}")
 
                 print("3UTR regions:")
                 for i, (start, end) in enumerate(
                     zip(t["3UTR_start"], t["3UTR_end"]), start=1
                 ):
-                    print(f"\t{i}. {start:,} - {end:,}")
+                    print(f"\t{i:2}. {start:,} - {end:,}")
             else:
                 print(f"{len(t['exon_start'])} exons.")
 
@@ -507,7 +507,7 @@ class Transcript_gff3_cls:
         """Prints transcript IDs."""
         print(f"{self.gene} transcript IDs:")
         for i, t in enumerate(self.transcripts_info.keys(), start=1):
-            print(f"{i}. {t}")
+            print(f"{i:2}. {t}")
 
     def exon_intron_map(self, transcript_id: str) -> pd.DataFrame | None:
         """Returns exon and intron map. This is basically the primary transcript map."""
