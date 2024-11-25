@@ -84,6 +84,16 @@ print(t_info['transcript_name'], t_info['transcript_v_id'], t_info['transcript_v
 ```
 
 Transcript and mRNA tables:
+
+The transcript table lists the exons and introns in the transcript. Following is a partial transcript table of the transcript `ENST00000275493`.
+![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png) 
+
+The mRNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
+
+![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png)
+
+Here `mRNA_NT_region` gives the mRNA bp count, `ORF_NT_region` gives the ORF bp count, `ORF_AA_region` gives the protein AA count, and `next_exon_frame_alignment` gives the codon phase (i.e., number of bps required in the next exon to complete the last codon in this exon).
+
 ```python
 # Transcript table
 df = gA.exon_intron_map(transcript_id)
@@ -237,10 +247,6 @@ aa_seq = gA.AA(transcript_id)
 print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 ```
 
-## Transcript and mRNA Tables
-The transcript table lists the exons and introns in the transcript. See [here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png) for a partial transcript table of the transcript `ENST00000275493`.
 
-The mRNA table maps lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF on the exons
-See ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png) for the mRNA table of the transcript `ENST00000275493`.
 
-<img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png" width="128"/>
+
