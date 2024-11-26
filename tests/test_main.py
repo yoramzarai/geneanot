@@ -1,5 +1,8 @@
 """ 
 Activate environment and run "pytest".
+
+Tests below use the remote access mode (chromosome data extracted using Ensembl REST)
+thus requires network connection and may be slow.
 """
 from pathlib import Path
 import pytest
@@ -29,8 +32,11 @@ def test_gene_num_transcripts(gene: str, expected: int) -> None:
 @pytest.mark.parametrize(
     "gene, transcript, expected_partial_protein_seq",
     [
+        # these two are encoded on the positive strand
         ("EGFR", "ENST00000275493", "MRPSGTAGAALLALLAALCPASRALEEKKVCQGTSNKL"),
         ("AEBP1", "ENST00000223357", "MAAVRGAPLLSCLLALLALCPGGRPQTVLTDDEIEEFLEGFLSELEPEPREDDVEAPPPPEPTPRVRKAQAGGKPGKRPGTAAE"),
+        # IDH1 encoded on the negative strand
+        ("IDH1", "ENST00000345146", "MSKKISGGSVVEMQGDEMTRIIWELIKEKLIFPYVELDLHSYDLGIENRDATNDQVTKDAAEAIKKHNVGVKCATITPDEKRVEEFKLKQMWKSPNGTIRNILGGTVFRE")
     ],
 )
 def test_gene_transcript_protein_seq(gene: str, transcript: str, expected_partial_protein_seq: str) -> None:
@@ -56,6 +62,7 @@ def test_transcript_start_and_end(gene: str, transcript: str, expected: tuple[in
     "gene, transcript, expected",
     [
         ("EGFR", "ENST00000275493", (55_019_278, 55_205_615)),
+        ("IDH1", "ENST00000345146",(208_251_551, 208_237_081))
     ],
 )
 def test_transcript_start_end_chrm_codon(gene: str, transcript: str, expected: tuple[int,int]) -> None:
@@ -70,6 +77,7 @@ def test_transcript_start_end_chrm_codon(gene: str, transcript: str, expected: t
     [
         ("EGFR", "ENST00000275493", 55_157_663, {
             'region': 'Exon_11', 'region_pos': 1, 'segment': 'ORF', 'pos_in_segment': 1208, 'NT': 'G', 'codon_number': 403, 'nt_in_codon': 2, 'codon': 'GGG', 'aa': 'G'}),
+        ("IDH1", "ENST00000345146", 208_243_594, {'region': 'Exon_6', 'region_pos': 11, 'segment': 'ORF', 'pos_in_segment': 531, 'NT': 'T', 'codon_number': 177, 'nt_in_codon': 3, 'codon': 'GGT', 'aa': 'G'}),
     ],
 )
 def test_query_chrm_pos(gene: str, transcript: str, chrm_pos: int, expected: dict) -> None:
@@ -80,6 +88,7 @@ def test_query_chrm_pos(gene: str, transcript: str, chrm_pos: int, expected: dic
     "gene, transcript, chrm_pos, expected",
     [
         ("EGFR", "ENST00000275493", 55_211_628, (9905, 'A')),
+        ("IDH1", "ENST00000345146", 208_236_229, (2_318, 'A')),
     ],
 )
 def test_map_chrm_pos(gene: str, transcript: str, chrm_pos: int, expected: tuple[int,str]) -> None:
@@ -92,6 +101,7 @@ def test_map_chrm_pos(gene: str, transcript: str, chrm_pos: int, expected: tuple
     "gene, transcript, rna_pos, expected",
     [
         ("EGFR", "ENST00000275493", 685, (55143488, 'G')),
+        ("IDH1", "ENST00000345146", 685, (208245377, 'A')),
     ],
 )
 def test_map_rna_pos(gene: str, transcript: str, rna_pos: int, expected: tuple[int,str]) -> None:
@@ -102,6 +112,7 @@ def test_map_rna_pos(gene: str, transcript: str, rna_pos: int, expected: tuple[i
     "gene, transcript, rna_pos, expected",
     [
         ("EGFR", "ENST00000275493", 685, {'chrm_pos': 55143488, 'region': 'Exon_3', 'region_pos': 184, 'segment': 'ORF', 'pos_in_segment': 424, 'NT': 'G', 'codon_number': 142, 'nt_in_codon': 1, 'codon': 'GAA', 'aa': 'E'}),
+        ("IDH1", "ENST00000345146", 685, {'chrm_pos': 208245377, 'region': 'Exon_5', 'region_pos': 48, 'segment': 'ORF', 'pos_in_segment': 462, 'NT': 'A', 'codon_number': 154, 'nt_in_codon': 3, 'codon': 'ATA', 'aa': 'I'}),
     ],
 )
 def test_query_rna_pos(gene: str, transcript: str, rna_pos: int, expected: dict) -> None:
@@ -112,6 +123,7 @@ def test_query_rna_pos(gene: str, transcript: str, rna_pos: int, expected: dict)
     "gene, transcript, exon_number, nt_number, expected",
     [
         ("EGFR", "ENST00000275493", 7, 47, {'segment': 'ORF', 'pos_in_segment': 794, 'NT': 'C', 'codon_number': 265, 'nt_in_codon': 2, 'codon': 'CCC', 'aa': 'P'}),
+        ("IDH1", "ENST00000345146", 7, 47, {'segment': 'ORF', 'pos_in_segment': 745, 'NT': 'A', 'codon_number': 249, 'nt_in_codon': 1, 'codon': 'AGG', 'aa': 'R'}),
     ],
 )
 def test_query_exon_pos(gene: str, transcript: str, exon_number: int, nt_number: int, expected: dict) -> None:
@@ -122,6 +134,7 @@ def test_query_exon_pos(gene: str, transcript: str, exon_number: int, nt_number:
     "gene, transcript, exon_number, nt_number, expected",
     [
         ("EGFR", "ENST00000275493", 28, 400, ('3UTR', 38)),
+        ("IDH1", "ENST00000345146", 5, 74, ('ORF', 488)),
     ],
 )
 def test_query_exon_segment(gene: str, transcript: str, exon_number: int, nt_number: int, expected: tuple[str,int]) -> None:
@@ -132,6 +145,7 @@ def test_query_exon_segment(gene: str, transcript: str, exon_number: int, nt_num
     "gene, transcript, aa_number, expected",
     [
         ("EGFR", "ENST00000275493", 163, {'codon': 'CAG', 'AA': 'Q', 'codon_exon_pos': ['Exon_4:63', 'Exon_4:64', 'Exon_4:65'], 'codon_chromosome_pos': [55146668, 55146669, 55146670], 'mrna_pos': [748, 749, 750]}),
+        ("IDH1", "ENST00000345146", 49, {'codon': 'CGT', 'AA': 'R', 'codon_exon_pos': ['Exon_4:23', 'Exon_4:24', 'Exon_4:25'], 'codon_chromosome_pos': [208248638, 208248637, 208248636], 'mrna_pos': [368, 369, 370]}),
     ],
 )
 def test_query_aa_pos(gene: str, transcript: str, aa_number: int, expected: dict) -> None:
@@ -142,6 +156,7 @@ def test_query_aa_pos(gene: str, transcript: str, aa_number: int, expected: dict
     "gene, transcript, ref_allele, var_allele, pos, expected_aa_var",
     [
         ("EGFR", "ENST00000275493", "G", "C", 55_152_609, "C231S"),
+        ("IDH1", "ENST00000345146", "C", "T", 208_248_455, "E110K"),
     ],
 )
 def test_DNA2AA_var(gene: str, transcript: str, ref_allele: str, var_allele: str, pos: int, expected_aa_var: str) -> None:
@@ -152,6 +167,7 @@ def test_DNA2AA_var(gene: str, transcript: str, ref_allele: str, var_allele: str
     "gene, transcript, aa_var, expected_dna_var",
     [
         ("EGFR", "ENST00000275493", "C231S", {'TCT': {'start_pos': 55152609, 'reference_allele': 'GC', 'alternative_allele': 'CT'}, 'TCC': {'start_pos': 55152609, 'reference_allele': 'G', 'alternative_allele': 'C'}, 'TCA': {'start_pos': 55152609, 'reference_allele': 'GC', 'alternative_allele': 'CA'}, 'TCG': {'start_pos': 55152609, 'reference_allele': 'GC', 'alternative_allele': 'CG'}, 'AGT': {'start_pos': 55152608, 'reference_allele': 'TGC', 'alternative_allele': 'AGT'}, 'AGC': {'start_pos': 55152608, 'reference_allele': 'T', 'alternative_allele': 'A'}}),
+        ("IDH1", "ENST00000345146", "E110K", {'AAA': {'start_pos': 208248455, 'reference_allele': 'C', 'alternative_allele': 'T'}, 'AAG': {'start_pos': 208248453, 'reference_allele': 'TTC', 'alternative_allele': 'CTT'}}),
     ],
 )
 def test_AA2DNA_var(gene: str, transcript: str, aa_var: str, expected_dna_var: dict) -> None:
@@ -165,7 +181,9 @@ def test_AA2DNA_var(gene: str, transcript: str, aa_var: str, expected_dna_var: d
 @pytest.mark.parametrize(
     "gene, transcript, expected_partial_protein_seq",
     [
+        # encoded on the positive strand
         ("Cntnap1", "ENSMUST00000103109", "MMSLRLFSILLATVVSGAWGWGYYGCNEELVGPLYARSLGASSYYGLFTTARFARLHGISGWSPRIGDPNPWLQIDLMKKHRIRAVATQGAFNSWDWVTRYMLLYGDRVDSWTPFYQKGHN"),
+        # encoded on the negative strand
         ("Drg1", "ENSMUST00000020741", "MSGTLAKIAEIEAEMARTQKNKATAHHLGLLKARLAKLRRELITPKGGGGGGPGEGFDVAKTGDARIGFVGFPSVGKSTLLSNLAGVYSEVAAYEFTTLTTVPGVIRYKGAKIQLLDLPGIIEGAKDGKGRGRQVIAVARTCNLILIVLDVLKPLGHKKIIENELEGFGIRLNSKPPNIGFKKKDKGGINLTATCPQSELDAETVKSILAEYKIHNADVTLRSDATADDLIDVVEGNRVYIPCIYVLNKIDQISIEELDIIYKVPHCVPISAHHRWNFDDLLEKIWDYLKLVRIYTKPKG"),
     ],
 )
