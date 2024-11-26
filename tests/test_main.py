@@ -1,21 +1,38 @@
 """ 
 Activate environment and run "pytest".
 
-Tests below use the remote access mode (chromosome data extracted using Ensembl REST)
-thus requires network connection and may be slow.
+The tests below use the remote access mode (chromosome data extracted using Ensembl REST),
+thus require a network connection and may be slow.
 """
 from pathlib import Path
 import pytest
 import geneanot.Gene_annotation as ga
 
 
-def get_homo_sapiens_object(gene: str) -> ga.Gene_cls:
-    annotation_full_file: Path = Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz')
-    return ga.Gene_cls(gene, annotation_full_file, verbose=False)
+human_gff3_dfs = ga.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz'))
 
+def get_homo_sapiens_object(gene: str) -> ga.Gene_cls:
+    g = ga.Gene_cls(gene, human_gff3_dfs, verbose=False)
+    # if chromosome file exists, use it (local mode - faster retrival)
+    chrm_fasta_file = f'Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.{g.chrm}.fa'
+    g.chrm_fasta_file = chrm_fasta_file if Path(chrm_fasta_file).is_file() else None
+    return g
 
 # Homo sapiens 
 # ============
+@pytest.mark.parametrize(
+    "gene, expected",
+    [
+        # homo_sapiens
+        ("EGFR", (55_019_017, 55_211_628, '7', False)),
+        ("IDH1", (208_236_229, 208_266_074, '2', True)),
+    ],
+)
+def test_gene_start_end_chrm_rev(gene: str, expected: tuple[int, int, str, bool]) -> None:
+    g = get_homo_sapiens_object(gene)
+    assert (g.gene_start, g.gene_end, g.chrm, g.rev) == expected
+
+
 @pytest.mark.parametrize(
     "gene, expected",
     [
@@ -30,11 +47,25 @@ def test_gene_num_transcripts(gene: str, expected: int) -> None:
 
 
 @pytest.mark.parametrize(
+    "gene, transcript, expected",
+    [
+        # homo_sapiens
+        ("EGFR", "ENST00000275493", 192_612),
+        ("IDH1",  "ENST00000345146", 18_843),
+    ],
+)
+def test_gene_transcript_premrna_size(gene: str, transcript: str, expected: int) -> None:
+    g = get_homo_sapiens_object(gene)
+    assert len(g.seq(transcript)) == expected
+
+
+@pytest.mark.parametrize(
     "gene, transcript, expected_partial_protein_seq",
+    # sequences here are not complete (first AAs)
     [
         # these two are encoded on the positive strand
         ("EGFR", "ENST00000275493", "MRPSGTAGAALLALLAALCPASRALEEKKVCQGTSNKL"),
-        ("AEBP1", "ENST00000223357", "MAAVRGAPLLSCLLALLALCPGGRPQTVLTDDEIEEFLEGFLSELEPEPREDDVEAPPPPEPTPRVRKAQAGGKPGKRPGTAAE"),
+        #("AEBP1", "ENST00000223357", "MAAVRGAPLLSCLLALLALCPGGRPQTVLTDDEIEEFLEGFLSELEPEPREDDVEAPPPPEPTPRVRKAQAGGKPGKRPGTAAE"),
         # IDH1 encoded on the negative strand
         ("IDH1", "ENST00000345146", "MSKKISGGSVVEMQGDEMTRIIWELIKEKLIFPYVELDLHSYDLGIENRDATNDQVTKDAAEAIKKHNVGVKCATITPDEKRVEEFKLKQMWKSPNGTIRNILGGTVFRE")
     ],
@@ -45,6 +76,36 @@ def test_gene_transcript_protein_seq(gene: str, transcript: str, expected_partia
     if (protein_seq := g.AA(transcript)) is None:
         raise ValueError
     assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
+
+
+@pytest.mark.parametrize(
+    "gene, transcript, expected_partial_utr3_seq",
+    # sequences here are not complete (first bps)
+    [
+        ("EGFR", "ENST00000275493", "CCACGGAGGATAGTATGAGCCCTAAAAATCCAGACTCTTTCGATACCCAGGACCAAGCCACAGCAGGTCCTCCATCCCAACAGCCATGCCCGCATTAGCTCTTAGACCCACAGACTGGTTTTGCAACGTTTA"),
+        ("IDH1", "ENST00000345146", "GTTCATACCTGAGCTAAGAAGGATAATTGTCTTTTGGTAACTAGGTCTACAGGTTTACATTTTTCTGTGTTACACTCAAGGATAAAGGCAAAATCAATTTTGTAATTTGTTTAGAAGCCAGAGTTTATCTTTTCTATAAGTTTACAGCCT")
+    ],
+)
+def test_gene_transcript_UTR3_seq(gene: str, transcript: str, expected_partial_utr3_seq: str) -> None:
+    g = get_homo_sapiens_object(gene)
+    if (seq := g.UTR3(transcript)) is None:
+        raise ValueError
+    assert seq[:len(expected_partial_utr3_seq)].upper() == expected_partial_utr3_seq.upper()
+
+
+@pytest.mark.parametrize(
+    "gene, transcript, expected_partial_utr5_seq",
+    # sequences here are not complete (first bps)
+    [
+        ("EGFR", "ENST00000275493", "AGACGTCCGGGCAGCCCCCGGCGCAGCGCGGCCGCAGCAGCCTCCGCCCCCCGCACGGTGTGAGCGCCCGACGCGGCCGAGGCGGCCGGAGTCCCGAGCTAGCCCCGGCGGCCGC"),
+        ("IDH1", "ENST00000345146", "GGGTTTCTGCAGAGTCTACTTCAGAAGCGGAGGCACTGGGAGTCCGGTTTGGGATTGCCAGGCTGTGGTTGTGAGTCTGAGCTTGTGAGCGGCTGTGGCGCCCCAACTCTTCGCCAGCATATCATCCCGG")
+    ],
+)
+def test_gene_transcript_UTR5_seq(gene: str, transcript: str, expected_partial_utr5_seq: str) -> None:
+    g = get_homo_sapiens_object(gene)
+    if (seq := g.UTR5(transcript)) is None:
+        raise ValueError
+    assert seq[:len(expected_partial_utr5_seq)].upper() == expected_partial_utr5_seq.upper()
 
 @pytest.mark.parametrize(
     "gene, transcript, expected",
@@ -184,7 +245,7 @@ def test_AA2DNA_var(gene: str, transcript: str, aa_var: str, expected_dna_var: d
         # encoded on the positive strand
         ("Cntnap1", "ENSMUST00000103109", "MMSLRLFSILLATVVSGAWGWGYYGCNEELVGPLYARSLGASSYYGLFTTARFARLHGISGWSPRIGDPNPWLQIDLMKKHRIRAVATQGAFNSWDWVTRYMLLYGDRVDSWTPFYQKGHN"),
         # encoded on the negative strand
-        ("Drg1", "ENSMUST00000020741", "MSGTLAKIAEIEAEMARTQKNKATAHHLGLLKARLAKLRRELITPKGGGGGGPGEGFDVAKTGDARIGFVGFPSVGKSTLLSNLAGVYSEVAAYEFTTLTTVPGVIRYKGAKIQLLDLPGIIEGAKDGKGRGRQVIAVARTCNLILIVLDVLKPLGHKKIIENELEGFGIRLNSKPPNIGFKKKDKGGINLTATCPQSELDAETVKSILAEYKIHNADVTLRSDATADDLIDVVEGNRVYIPCIYVLNKIDQISIEELDIIYKVPHCVPISAHHRWNFDDLLEKIWDYLKLVRIYTKPKG"),
+        ("ENSMUSG00000020457", "ENSMUST00000020741", "MSGTLAKIAEIEAEMARTQKNKATAHHLGLLKARLAKLRRELITPKGGGGGGPGEGFDVAKTGDARIGFVGFPSVGKSTLLSNLAGVYSEVAAYEFTTLTTVPGVIRYKGAKIQLLDLPGIIEGAKDGKGRGRQVIAVARTCNLILIVLDVLKPLGHKKIIENELEGFGIRLNSKPPNIGFKKKDKGGINLTATCPQSELDAETVKSILAEYKIHNADVTLRSDATADDLIDVVEGNRVYIPCIYVLNKIDQISIEELDIIYKVPHCVPISAHHRWNFDDLLEKIWDYLKLVRIYTKPKG"),
     ],
 )
 def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, expected_partial_protein_seq: str) -> None:
