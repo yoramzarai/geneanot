@@ -8,7 +8,7 @@ See the GFF3 readme for a description of the different GFF3 fields,
 for example: https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README
 """
 import pathlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
@@ -205,27 +205,26 @@ class Transcript_gff3_cls:
     verbose: bool = True  # set to False at instantiation to suppress prints
 
     # user should not set this. I need to change this when a new REST API URL is available.
-    _rest_assembly: str = 'GRCh38'
+    _rest_assembly: str = field(init=False, default='GRCh38')
 
     # these are set by the __post_init__ method.
-    gff3_df: pd.DataFrame | None = None
-    gff3_df_gene_type: pd.DataFrame | None = None
+    gff3_df: pd.DataFrame = field(init=False)
+    gff3_df_gene_type: pd.DataFrame = field(init=False)
 
-    gene_ID: str = ''
-    gene_name: str = ''
-    chrm: str = ''
-    rev: bool = False
-    gene_start: int = 0
-    gene_end: int = 0
-    gene_type: str = ''
-    gene_desc: str = ''
-    gene_ver: int = 0
-    transcripts: list | None = None
+    gene_ID: str = field(init=False)
+    gene_name: str = field(init=False)
+    chrm: str = field(init=False)
+    rev: bool = field(init=False)
+    gene_start: int = field(init=False)
+    gene_end: int = field(init=False)
+    gene_type: str = field(init=False)
+    gene_desc: str = field(init=False)
+    gene_ver: int = field(init=False)
+    transcripts: list = field(init=False)
+    source: str = field(init=False)
 
-    source: str = ''
-
-    transcripts_info: dict | None = None  # keys are transcripts, values are transcript details
-    exon_intron_maps: dict | None = None  # keys are transcripts, values are maps in dataframe format
+    transcripts_info: dict = field(init=False)  # keys are transcripts, values are transcript details
+    exon_intron_maps: dict = field(init=False)  # keys are transcripts, values are maps in dataframe format
 
     __protein_coding_labels_in_biotype: list | None = None
 
@@ -233,7 +232,7 @@ class Transcript_gff3_cls:
         if isinstance(self.gff3_source, pathlib.Path):  # instantiating by GFF3 file name
             self.source = str(self.gff3_source)
             if self.verbose:
-                print(f"Loading {self.gff3_source} to a dataframe ...", end='')
+                print(f"Loading {self.gff3_source} to a dataframe ... ", end='')
             self.gff3_df, self.gff3_df_gene_type = egna.load_ensembl_human_gff3_annotation_file(self.gff3_source, egna.Gene_type_values)
             if self.verbose:
                 print("Done.")
@@ -743,7 +742,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         seq = "".join(
             [
                 #extract_fasta_seq(chrm_path, a_s, a_e, rev=False)
-                self._extract_sequence(a_s, a_e, rev=rev)
+                self._extract_sequence(a_s, a_e, rev=False)
                 for a_s, a_e in zip(a_start, a_end)
             ]
         )

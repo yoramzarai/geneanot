@@ -2,10 +2,9 @@
 
 A Python package that annotates eukaryotes genes and transcripts based on Ensembl.
 
-Requires Python>=3.10.
+# Python
 
-# Species
-`geneanot` supports all eukaryotes species.
+Requires python>=3.10
 
 # Installing
 `geneanot` is available on PyPI:
@@ -25,17 +24,17 @@ Some of the methods require the chromosome sequence data. Two chromosome data **
 
 `local` access implies faster sequence retrival from the chromosome, whereas `remote` access requires network connection and implies a slower sequence retrival.
 
-The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal bps per row in all sequence
-rows (other than possibly the last row). Ensembl chromosome Fasta files comply with this.
+The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal number of bps per row in all sequence
+rows (other than possibly the last row). The chromosome Fasta file can be downloaded from Ensembl (Ensembl chromosome Fasta files contain equal number of bps per sequence row).
 
 Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
 # Usage
 See the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for a detailed usage description.
 
-Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder):
+Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder). We start with annotating Homo sapiens gene (which is the default species in `geneanot`).
 
-Instantiating an annotation object:
+## Instantiating an annotation object
 ```python
 from pathlib import Path
 import geneanot as u
@@ -48,14 +47,14 @@ download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annot
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
 # instantiate annotation class (can use gene name or gene ID) in remote access mode
-gA = u.Gene_cls('EGFR', annotation_full_file, species='homo_sapiens', verbose=True)
+gA = u.Gene_cls('EGFR', annotation_full_file, verbose=True)
 
 # or - instantiate annotation class (can use gene name or gene ID) in local access mode
 chrm_fasta_file: str = 'Homo_sapiens.GRCh38.dna_sm.chromosome.7.fa'  # change to your path
-gA = u.Gene_cls('EGFR', annotation_full_file, species='homo_sapiens', chrm_fasta_file=chrm_fasta_file, verbose=True)
+gA = u.Gene_cls('EGFR', annotation_full_file, chrm_fasta_file=chrm_fasta_file, verbose=True)
 ```
 
-Basic gene annotation:
+## Basic gene annotation
 ```python
 # show gene basic information
 gA.info()
@@ -73,7 +72,7 @@ print(f"{gene=} encoded on the {'negative' if gA.rev else 'positive'} DNA strand
 print(gA.gene_name, gA.gene_ID, gA.gene_desc, gA.gene_type, gA.gene_ver, gA.rev, gA.chrm, gA.gene_start, gA.gene_end, len(gA.transcripts_info), sep='\n')
 ```
 
-Transcript annotation:
+## Transcript annotation
 ```python
 # show transcript basic information
 gA.transcript_info('ENST00000275493', verbose=True)
@@ -83,9 +82,9 @@ t_info = gA.transcripts_info[transcript_id]
 print(t_info['transcript_name'], t_info['transcript_v_id'], t_info['transcript_ver'])
 ```
 
-Transcript and mRNA tables:
+## Transcript and mRNA tables
 
-The transcript table lists the exons and introns in the transcript. Following is a partial transcript table of the transcript `ENST00000275493`.
+The transcript table lists the exons and introns in the transcript. Following is a **partial** transcript table of the transcript `ENST00000275493`.
 ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png) 
 
 The mRNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
@@ -114,7 +113,7 @@ gA.exon_map_to_excel(transcript_id, './../Reports/mRNA_table.xlsx', usr_desc={"D
 gA.exon_map_to_html(transcript_id, './../Reports/mRNA_table.html')
 ```
 
-Sequences:
+## Sequences
 ```python
 pre_mRNA_seq = gA.seq(transcript_id).upper()
 print(f"pre-mRNA contains {len(pre_mRNA_seq):,} bps.")
@@ -147,7 +146,7 @@ m_seq = gA.modified_transcript(use_exon_list, use_intron_list, transcript_id)
 print(f"\nA modified transcript containing exons {', '.join(map(str,use_exon_list))} and introns {', '.join(map(str,use_intron_list))} contains {len(m_seq.upper()):,} bps.")
 ```
 
-Queries:
+## Queries
 ```python
 # query a chromosome position
 chrm_pos: int = 55_157_663
@@ -196,7 +195,7 @@ for i, (codon, var_info) in enumerate(dna_all_muts.items(), start=1):
 ```
 
 
-Annotating multiple genes (faster instantiation):
+## Annotating multiple genes (faster instantiation)
 ```python
 # parse annotation file into annotation dataframes
 gff3_dfs = u.ensembl_gff3_df(annotation_full_file)  
@@ -211,11 +210,11 @@ g_a3 = u.Gene_cls('IDH1', gff3_dfs)
 g_a3.info()
 ```
 
-Annotating other Eukaryotes Species:
+## Annotating other eukaryotes species
 ```python
 # Example: Mus_musculus
 
-species: str = 'mus_musculus'
+species: str = 'mus_musculus'  # required for non Homo sapiens species.
 
 # The suggest annotation file name - informative
 suggest_annotation_file_name, _, release_n = u.suggested_annotation_file_name(species=species)
@@ -231,7 +230,7 @@ download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annot
                                                                            species=species)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
-# instantiate annotation class (can use gene name or gene ID) in remote mode (see above for local mode example)
+# instantiate annotation class (can use gene name or gene ID) in remote mode (see above for a local mode example)
 gA = u.Gene_cls('ENSMUSG00000017167', annotation_full_file, species=species, verbose=True)
 gA.info()
 
@@ -247,6 +246,10 @@ aa_seq = gA.AA(transcript_id)
 print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 ```
 
-
+# References
+- [Ensembl](http://www.ensembl.org/index.html)
+- [Ensembl GFF3 File Format](https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README)
+- [GFF3 Format](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
+- [Ensembl REST](https://rest.ensembl.org)
 
 

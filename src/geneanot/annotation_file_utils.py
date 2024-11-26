@@ -95,17 +95,17 @@ def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
     if local_version_info:
         max_local_version = max(local_version_info.keys())
         local_gff3_max_ver_file = local_version_info[max_local_version]
-        print(f"Local annotation versions found: {', '.join(sorted(map(str, local_version_info.keys())))}. Latest is {max_local_version} ({local_gff3_max_ver_file}).")
+        print(f"Local annotation releases found: {', '.join(sorted(map(str, local_version_info.keys())))}. Latest is {max_local_version} ({local_gff3_max_ver_file}).")
     else:
         max_local_version, local_gff3_max_ver_file = None, ''
         print("No local annotation files found.")
 
     # Ensembl file
-    print(f"Ensembl latest version is {ensm_rel}.")
+    print(f"Ensembl latest release is {ensm_rel}.")
     ensembl_gff3_latest_file = gff3_pattern.replace('XXX', str(ensm_rel))
 
     if ensm_rel == max_local_version:
-        print("Ensembl and local versions match.")
+        print("Ensembl and local releases match.")
         return False, ensembl_gff3_latest_file, local_gff3_max_ver_file
 
     ensembl_url: str = f'rsync://ftp.ebi.ac.uk/ensemblorg/pub/current_gff3/{species}'
@@ -113,8 +113,8 @@ def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
     if (max_local_version is None) or enable_download:
         # no local version, or (local version < ensembl version and enable_download == True). Thus need to download Ensembl file
         if max_local_version is not None:
-            print("Local latest version is older than latest Ensembl version.")
-        print(f"Downloading Ensembl latest version ({ensembl_gff3_latest_file})...")
+            print("Local latest release is older than latest Ensembl release.")
+        print(f"Downloading Ensembl latest annotation file ({ensembl_gff3_latest_file})...")
 
         ret = subprocess.run(f"rsync -av {ensembl_url}/{ensembl_gff3_latest_file} {str(local_gff3_folder)}", shell=True, capture_output=True, check=False)
         if (ret_success := (ret.returncode == 0)):
@@ -126,5 +126,5 @@ def update_local_release_to_latest(local_gff3_folder: pathlib.Path,
         return ret_success, ensembl_gff3_latest_file, local_gff3_max_ver_file
 
     # local version < ensembl version and enable_download == False
-    print(f"Download not done (since {enable_download=}). Use local {local_gff3_max_ver_file} annotation file.")
+    print(f"Download did not occur (since {enable_download=}). Use local {local_gff3_max_ver_file} annotation file.")
     return False, ensembl_gff3_latest_file, local_gff3_max_ver_file
