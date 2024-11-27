@@ -9,6 +9,19 @@ import subprocess
 
 import geneanot.ensembl_rest_utils as erut
 
+def suggested_annotation_file_name(species: str = 'homo_sapiens',
+                                   file_type: str = 'gff3', 
+                                   rest_assembly: str = 'GRCh38') -> tuple[str,str,str] | None:
+    """Returns the annotation file name based on the latest Ensembl release, and the provided species and file_type."""
+    rapi = erut.REST_API(assembly=rest_assembly)
+    try:
+        assembly_name = rapi.get_assembly_info(species=species)["default_coord_system_version"]
+        release_number = str(rapi.get_release_info()['releases'][0])
+    except KeyError as ke:
+        print(f"Error in retreiving assembly and release informtion: {ke}")
+        return None
+    return f"{species.capitalize()}.{assembly_name}.{release_number}.{file_type}.gz", assembly_name, release_number
+
 def list_files_in_folder(folder: pathlib.Path,
                          file_pattern: str) -> list[pathlib.Path]:
     """Returns a list of files (with a given signature) found in a folder.

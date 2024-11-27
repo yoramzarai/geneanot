@@ -11,164 +11,22 @@ import pathlib
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook
-from openpyxl.styles import Font
 
-from geneanot.Fasta_segment import Fasta_segment
 import geneanot.translation as tran
 import geneanot.ensembl_gene_annotations_utils as egna
-from geneanot.ensembl_rest_utils import REST_API
+from geneanot.excel_utils import dfs_to_excel_file, create_excel_description_sheet
+from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
 
 
 def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Parse the annotation file into tow dataframes, which are used by the annotation API.
+    Parse the annotation file into two dataframes, which are used by the annotation API.
 
     file: GFF3 file path.
     """
     if gene_type_values is None:
         gene_type_values = egna.Gene_type_values 
     return egna.load_ensembl_human_gff3_annotation_file(file, gene_type_values)
-
-def suggested_annotation_file_name(species: str = 'homo_sapiens', file_type: str = 'gff3', rest_assembly: str = 'GRCh38') -> tuple[str,str,str] | None:
-    """Retruns the annotation file name based on the latest Ensembl release, and the provided species and file_type."""
-    rapi = REST_API(assembly=rest_assembly)
-    try:
-        assembly_name = rapi.get_assembly_info(species=species)["default_coord_system_version"]
-        release_number = str(rapi.get_release_info()['releases'][0])
-    except KeyError as ke:
-        print(f"Error in retreiving assembly and release informtion: {ke}")
-        return None
-    return f"{species.capitalize()}.{assembly_name}.{release_number}.{file_type}.gz", assembly_name, release_number
-
-def extract_fasta_seq(
-        fasta_file: str,
-        start_p: int,   # 1-based
-        end_p: int,  # 1-based
-        rev: bool = False) -> str:
-    """
-    Extracts a Fasta sequence.
-
-    This function can be used ONLY with Fasta files where ALL rows
-    (excluding the headers, and possibly the last row) have the same number of characters!
-
-    Args:
-        fasta_file (str): Fasta file name.
-        start_p (int): 1-based start position
-        end_p (int): 1-based end position
-        rev (bool, optional): True to get the reveresed-complement sequence (i.e. the sequence in the negative strand). Defaults to False.
-
-    Returns:
-        str: The extracted sequence.
-    """
-    # read_segment gets 0-based position, and size of the sequence
-    seq = Fasta_segment().read_segment(fasta_file, start_p-1, end_p - start_p + 1)
-    return tran.reverse_complement(seq) if rev else seq
-
-def extract_chromosome_seq(
-        chrm: str,  # without 'chr' prefix, e.g., '3', or 'X'
-        start_p: int,
-        end_p: int,
-        rev: bool = False,
-        species: str = 'homo_sapiens',
-        rest_assembly: str = 'GRCh38'
-        ) -> str:
-    """Extracts a chromosome sequence using Ensembl REST API.
-
-    Args:
-        chrm (str): chromosome number. E.g., '1' or 'X'.
-        start_p (int): 1-based start position.
-        end_p (int): 1-based end position.
-        rev (bool, optional): True to extract the reveresed-complement sequence 
-                             (i.e. the sequence in the negative strand). Defaults to False.
-        species (str, optional): Defaults to 'homo_sapiens'.
-        assembly (str, optional): Determines the REST URL. Defaults to 'GRCh38'.
-
-    Returns:
-        str: The extracted sequence.
-    """
-    strand = -1 if rev else 1
-    return REST_API(assembly=rest_assembly).sequence_region_endpoint_base(chrm, start_p, end_p, strand=strand, species=species, content_type='text/plain')
-
-def pos2seg_info(pos: int, seg_start: list, seg_end: list, rev: bool) -> tuple[int, int, int] | None:
-    """
-    Given a position pos, and segments defined by start and end lists, the function returns
-    the tuple (x, y, z), where
-    x - the 0-based segment number containing pos
-    y - the 0-based position within the segment x corresponding to pos
-    z - the 0-based offset from the first segment, when concatenating all segments, corresponding to pos
-
-    Note that seg_start[i] > seg_end[i] for rev==True, otherwise seg_start[i] < seg_end[i].
-    """
-    # converting so that start < end
-    s_start, s_end = (seg_end, seg_start) if rev else (seg_start, seg_end)
-
-    try:
-        # 0-based
-        seg_indx = np.argwhere((np.array(s_start) <= pos) & (pos <= np.array(s_end)))[0][0]
-    except IndexError:
-        return None
-
-    seg_sizes = [e - s + 1 for s, e in zip(s_start, s_end)]
-    dist_from_seg = (seg_start[seg_indx] - pos) if rev else (pos - seg_start[seg_indx])
-    dist_from_first_seg = sum(seg_sizes[:seg_indx]) + dist_from_seg
-
-    return int(seg_indx), int(dist_from_seg), int(dist_from_first_seg)
-
-def dfs_to_excel_file(dfs: list[pd.DataFrame], excel_file_name: str, sheet_names: list[str],
-                      add_index: bool = False,
-                      na_rep: str = 'NaN',
-                      float_format: str | None = None,
-                      extra_width: int = 0,
-                      header_format: dict | None = None):
-    """
-    Write DataFrames to excel, while auto adjusting column widths based on the data.
-    """
-    if len(dfs) != len(sheet_names):
-        raise ValueError("dfs_to_excel_file: the numbers of dfs and sheet names must match !!")
-
-    with pd.ExcelWriter(excel_file_name) as writer:
-        for sheet_name, df in zip(sheet_names, dfs):
-            df.to_excel(writer, sheet_name=sheet_name, index=add_index, na_rep=na_rep, float_format=float_format)
-
-            # Auto-adjust columns' width
-            worksheet = writer.sheets[sheet_name]
-            for column in df:
-                #column_width = max(df[column].astype(str).map(len).max(), len(column)) + extra_width  # this (.map(len)) does not work for NA values
-                #column_width = max(df[column].fillna(method='ffill').astype(str).map(len).max(), len(column)) + extra_width  # this first replaces NA values with previous valid value from the column
-                column_width = max(df[df[column].notna()][column].astype(str).map(len).max(), len(column)) + extra_width  # this first removes NA values from the column
-                col_idx = df.columns.get_loc(column)
-                worksheet.set_column(col_idx, col_idx, column_width)
-
-            if header_format is not None:
-                h_format = writer.book.add_format(header_format)
-                for col_num, value in enumerate(df.columns.values):
-                    worksheet.write(0, col_num, value, h_format)
-
-def create_excel_description_sheet(excel_file: str, info: dict, sheet_name: str = "Desc", sheet_pos: int | None = None) -> bool:
-    """
-    This function creates a sheet containing the key [value] of info in column 1 [2] of the sheet.
-    If a key is empty (i.e., k==''), an empty line is created.
-
-    sheet_pos: the position of the sheet in the file. 0 for the first sheet, None for the last sheet.
-    """
-    wb = load_workbook(excel_file)
-    wb.create_sheet(sheet_name, sheet_pos)
-    sheet = wb[sheet_name]
-    for i, (k, v) in enumerate(info.items(), start=1):
-        if k != "":
-            sheet.cell(row=i, column=1).value = k
-            sheet.cell(row=i, column=1).font = Font(bold=True)
-
-            sheet.cell(row=i, column=2).value = v
-
-    # set column width
-    sheet.column_dimensions["A"].width = max([len(x) for x in info.keys()])
-    sheet.column_dimensions["B"].width = max([len(x) for x in info.values()])
-
-    wb.save(excel_file)
-    return True
-
 
 @dataclass
 class Transcript_gff3_cls:

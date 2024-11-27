@@ -1,6 +1,8 @@
 """ 
 Activate environment and run "pytest".
 
+The "expected" in the tests below are based on release 113 (Homo_sapiens.GRCh38.113.gff3.gz).
+
 The tests below use the remote access mode (chromosome data extracted using Ensembl REST),
 thus require a network connection and may be slow.
 """
