@@ -20,7 +20,7 @@ from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fas
 
 def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Parse the annotation file into two dataframes, which are used by the annotation API.
+    Parse the annotation file into two dataframes, which can be used to instantiate the annotation class.
 
     file: GFF3 file path.
     """
@@ -412,7 +412,7 @@ class Transcript_gff3_cls:
 
     def seq(self, transcript_id: str) -> str | None:
         """
-        Generates the (primary) transcript sequence.
+        Generates the (primary) transcript sequence (i.e. pre-rna sequence).
         """
         if not self.__check_transcript_exists(transcript_id):
             return None
@@ -1594,4 +1594,4 @@ class Gene_cls(Gene_gff3_cls):
         return f"Gene_cls('{self.gene}, gff3_file|(gff3_df, gff3_df_gene_type)')"
 
     def __str__(self) -> str:
-        return"Gene annotation class based on gene name and annotation data (annotation file of dataframes).\n"
+        return"Gene annotation class based on gene name and annotation data (annotation file or dataframes).\n"
