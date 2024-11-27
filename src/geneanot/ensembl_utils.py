@@ -1,19 +1,19 @@
 # pylint: disable=line-too-long,invalid-name,pointless-string-statement,too-many-arguments,too-many-lines
 # type: ignore  # for Pylance
 """
-Ensembl utils.
+Ensembl related utils.
 """
 import re
 
 # pattern for Ensembl stable ID
 Ensb_pattern: str = r"ENS([A-Z]*)([A-Z])(\d{11})"
 # Pattern for Ensembl stable ID with version
-Ensb_pattern_ver: str = r"ENS([A-Z]*)([A-Z])(\d{11}).(\d*)"
+# Ensb_pattern_ver: str = r"ENS([A-Z]*)([A-Z])(\d{11}).(\d*)"
 # Pattern for Ensembl stable ID with or without a version
 Ensb_pattern_ver: str = r"ENS([A-Z]*)([A-Z])(\d{11})(\.\d+)?"
 
 # See http://www.ensembl.org/info/genome/stable_ids/prefixes.html
-Ebnsb_feature_mapping: dict[str,str] = {
+Ensb_feature_mapping: dict[str,str] = {
     "E": "Exon",
     "G": "Gene",
     "T": "Transcript",
@@ -39,7 +39,7 @@ def parse_ensembl_id(ensb_id: str) -> dict:
         "feature_prefix": feature_prefix,
         "species_prefix": res.group(1) or None,  # None implies Homo sapiens
         "ID": res.group(3),
-        "feature_name": Ebnsb_feature_mapping.get(feature_prefix, '?'),
+        "feature_name": Ensb_feature_mapping.get(feature_prefix, '?'),
         "version": ver[1:] if ver else None
     }
 

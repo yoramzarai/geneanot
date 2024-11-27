@@ -1,7 +1,9 @@
 # pylint: disable=line-too-long,invalid-name,pointless-string-statement,too-many-arguments,too-many-lines,too-many-instance-attributes,too-many-locals
 # type: ignore   # for Pylance
 """
-Utils related to excel spreadsheet
+Utils related to excel spreadsheet.
+
+This requires also xlsxwriter to be installed.
 """
 import pandas as pd
 from openpyxl import load_workbook
