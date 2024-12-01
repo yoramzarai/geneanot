@@ -119,19 +119,19 @@ pre_RNA_seq = gA.seq(transcript_id).upper()
 print(f"pre-RNA contains {len(pre_RNA_seq):,} bps.")
 
 rna_seq = gA.rna(transcript_id).upper()
-print(f"\nrna=\n{rna_seq}")
+print(f"\nrna:\n{rna_seq}\n{len(rna_seq):,} bps.")
 
 orf_seq = gA.ORF(transcript_id).upper()
-print(f"\norf=\n{orf_seq}")
+print(f"\norf:\n{orf_seq}\n{len(orf_seq):,} bps.")
 
 aa_seq = gA.AA(transcript_id)
-print(f"\nAA=\n{aa_seq}")
+print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 
 utr5_seq = gA.UTR5(transcript_id).upper()
-print(f"\nutr5=\n{utr5_seq}")
+print(f"\n5'UTR:\n{utr5_seq}\n{len(utr5_seq):,} bps.")
 
 utr3_seq = gA.UTR3(transcript_id).upper()
-print(f"\nutr3=\n{utr3_seq}")
+print(f"\n3'UTR=\n{utr3_seq}\n{len(utr3_seq):,} bps.")
 
 exon_seq, seq_info = gA.exon_intron_seq('Exon', 5, transcript_id)
 print(f"\nExon =\n{exon_seq}\n{seq_info}")

@@ -1,5 +1,4 @@
 
-#from geneanot.Gene_annotation import *
 from .Gene_annotation import Gene_cls, ensembl_gff3_df
 from .annotation_file_utils import (
     suggested_annotation_file_name,
@@ -7,7 +6,6 @@ from .annotation_file_utils import (
     get_ensembl_release, 
     update_local_release_to_latest
 )
-#from geneanot.annotation_file_utils import *
 
 __all__ = [
     "Gene_cls", 
@@ -24,4 +22,5 @@ __all__ = [
 
 # an example of an entry point. See [project.scripts] in pyproject.toml
 def main() -> None:
-    print("Welcom to the eukaryote Gene annotation package.\nPlease visit https://github.com/yoramzarai/geneanot for a detailed description.")
+    print("Welcome to the eukaryotes gene annotation package geneanot.\n\
+Please visit https://github.com/yoramzarai/geneanot for description and usage information.")

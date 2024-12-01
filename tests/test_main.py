@@ -2,9 +2,6 @@
 Activate environment and run "pytest".
 
 The "expected" in the tests below are based on release 113 (Homo_sapiens.GRCh38.113.gff3.gz).
-
-The tests below use the remote access mode (chromosome data extracted using Ensembl REST),
-thus require a network connection and may be slow.
 """
 from pathlib import Path
 import pytest
@@ -15,10 +12,18 @@ human_gff3_dfs = ga.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.g
 
 def get_homo_sapiens_object(gene: str) -> ga.Gene_cls:
     g = ga.Gene_cls(gene, human_gff3_dfs, verbose=False)
-    # if chromosome file exists, use it (local mode - faster retrival)
+    # if the chromosome file exists, use it (local mode - faster retrival), otherwise use remote access.
     chrm_fasta_file = f'Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.{g.chrm}.fa'
     g.chrm_fasta_file = chrm_fasta_file if Path(chrm_fasta_file).is_file() else None
     return g
+
+def get_mus_musculus_object(gene: str) -> ga.Gene_cls:
+    annotation_full_file: Path = Path("AnnotationDB/Mus_musculus.GRCm39.113.gff3.gz")
+    g = ga.Gene_cls(gene, annotation_full_file, species="mus_musculus", verbose=False)
+    chrm_fasta_file = f'Chromosome/Mus_musculus.GRCm39.dna_sm.chromosome.{g.chrm}.fa'
+    g.chrm_fasta_file = chrm_fasta_file if Path(chrm_fasta_file).is_file() else None
+    return g
+
 
 # Homo sapiens 
 # ============
@@ -242,17 +247,43 @@ def test_AA2DNA_var(gene: str, transcript: str, aa_var: str, expected_dna_var: d
 # Mus musculus 
 # ============
 @pytest.mark.parametrize(
+    "gene, expected",
+    [
+        # mus musculus
+        ("ENSMUSG00000017167", 2),
+        ("Drg1", 7),
+        ("Pik3c2a", 7),
+    ],
+)
+def test_mouse_gene_num_transcripts(gene: str, expected: int) -> None:
+    g = get_mus_musculus_object(gene)
+    assert len(g) == expected
+
+@pytest.mark.parametrize(
+    "gene, expected",
+    [
+        ("ENSMUSG00000017167", (101_061_349, 101_081_550, '11', False)),
+        ("Drg1", (3_137_360, 3_216_415, '11', True)),
+        ("Pik3c2a", (115_936_500, 116_042_684, '7', True)),
+    ],
+)
+def test_mouse_gene_start_end_chrm_rev(gene: str, expected: tuple[int, int, str, bool]) -> None:
+    g = get_mus_musculus_object(gene)
+    assert (g.gene_start, g.gene_end, g.chrm, g.rev) == expected
+
+@pytest.mark.parametrize(
     "gene, transcript, expected_partial_protein_seq",
     [
         # encoded on the positive strand
         ("Cntnap1", "ENSMUST00000103109", "MMSLRLFSILLATVVSGAWGWGYYGCNEELVGPLYARSLGASSYYGLFTTARFARLHGISGWSPRIGDPNPWLQIDLMKKHRIRAVATQGAFNSWDWVTRYMLLYGDRVDSWTPFYQKGHN"),
         # encoded on the negative strand
         ("ENSMUSG00000020457", "ENSMUST00000020741", "MSGTLAKIAEIEAEMARTQKNKATAHHLGLLKARLAKLRRELITPKGGGGGGPGEGFDVAKTGDARIGFVGFPSVGKSTLLSNLAGVYSEVAAYEFTTLTTVPGVIRYKGAKIQLLDLPGIIEGAKDGKGRGRQVIAVARTCNLILIVLDVLKPLGHKKIIENELEGFGIRLNSKPPNIGFKKKDKGGINLTATCPQSELDAETVKSILAEYKIHNADVTLRSDATADDLIDVVEGNRVYIPCIYVLNKIDQISIEELDIIYKVPHCVPISAHHRWNFDDLLEKIWDYLKLVRIYTKPKG"),
+        ("Pik3c2a", "ENSMUST00000206219",
+        "MAQISNNSEFKQCSSSHPEPIRTKDVNKAEALQMEAEALAKLQKDRQMTDSPRGFELSSSTRQRTQGFNKQDYDLMVFPELDSQKRAVDIDVEKLTQAELEKILLDDNFETRKPPALPVTPVLSPSFSTQLYLRPSGQRGQWPPGLCGPSTYTLPSTYPSAYSKQATFQNGFSPRMPTFPSTESVYLRLPGQSPYFSYPLTPATPFHPQGSLPVYRPLVSPDMAKLFEKIASTSEFLKNGKARTDLEIANSKASVCNLQISPKSEDINKFDW")
     ],
 )
 def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, expected_partial_protein_seq: str) -> None:
-    annotation_full_file: Path = Path("AnnotationDB/Mus_musculus.GRCm39.113.gff3.gz")
-    g = ga.Gene_cls(gene, annotation_full_file, species="mus_musculus", verbose=False)
+    g = get_mus_musculus_object(gene)
     if (protein_seq := g.AA(transcript)) is None:
         raise ValueError
     assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
