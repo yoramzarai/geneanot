@@ -41,3 +41,7 @@ dev = [
 #dev = [
 #    "ipykernel>=6.29.5",
 #]
+
+# CLI entry point (name="function", where name is the executable we can run)
+[project.scripts]
+geneanot = "geneanot:main"

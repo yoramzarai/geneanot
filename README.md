@@ -82,16 +82,16 @@ t_info = gA.transcripts_info[transcript_id]
 print(t_info['transcript_name'], t_info['transcript_v_id'], t_info['transcript_ver'])
 ```
 
-## Transcript and mRNA tables
+## Transcript and RNA tables
 
 The transcript table lists the exons and introns in the transcript. Following is a **partial** transcript table of the transcript `ENST00000275493`.
 ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png) 
 
-The mRNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
+The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
 
 ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png)
 
-Here `mRNA_NT_region` gives the mRNA bp count, `ORF_NT_region` gives the ORF bp count, `ORF_AA_region` gives the protein AA count, and `next_exon_frame_alignment` gives the codon phase (i.e., number of bps required in the next exon to complete the last codon in this exon).
+Here `mRNA_NT_region` gives the mRNA bp count, `ORF_NT_region` gives the ORF bp count, `ORF_AA_region` gives the protein AA count, and `next_exon_frame_alignment` gives the codon phase (i.e., number of bps required in the next exon to complete the last codon in the current exon).
 
 ```python
 # Transcript table
@@ -103,7 +103,7 @@ gA.exon_intron_map_to_csv(transcript_id, './../Reports/transcript_table.csv')
 gA.exon_intron_map_to_excel(transcript_id, './../Reports/transcript_table.xlsx', usr_desc={"Description": "Transcript table", "Transcript": transcript_id})
 gA.exon_intron_map_to_html(transcript_id, './../Reports/transcript_table.html')
 
-# mRNA table
+# RNA table
 df = gA.exon_map(transcript_id)
 display(df)
 
@@ -115,8 +115,8 @@ gA.exon_map_to_html(transcript_id, './../Reports/mRNA_table.html')
 
 ## Sequences
 ```python
-pre_mRNA_seq = gA.seq(transcript_id).upper()
-print(f"pre-mRNA contains {len(pre_mRNA_seq):,} bps.")
+pre_RNA_seq = gA.seq(transcript_id).upper()
+print(f"pre-RNA contains {len(pre_RNA_seq):,} bps.")
 
 rna_seq = gA.rna(transcript_id).upper()
 print(f"\nrna=\n{rna_seq}")

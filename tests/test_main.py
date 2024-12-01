@@ -8,7 +8,7 @@ thus require a network connection and may be slow.
 """
 from pathlib import Path
 import pytest
-import geneanot.Gene_annotation as ga
+import geneanot as ga
 
 
 human_gff3_dfs = ga.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz'))
