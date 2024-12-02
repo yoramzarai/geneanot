@@ -46,10 +46,10 @@ Annotation_folder: Path = Path('./../AnnotationDB')
 download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annotation_folder, enable_download=True)
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
-# instantiate annotation class (can use gene name or gene ID) in remote access mode
+# instantiate an annotation object (can use gene name or gene ID) in remote access mode
 gA = u.Gene_cls('EGFR', annotation_full_file, verbose=True)
 
-# or - instantiate annotation class (can use gene name or gene ID) in local access mode
+# or - instantiate (can use gene name or gene ID) in local access mode
 chrm_fasta_file: str = 'Homo_sapiens.GRCh38.dna_sm.chromosome.7.fa'  # change to your path
 gA = u.Gene_cls('EGFR', annotation_full_file, chrm_fasta_file=chrm_fasta_file, verbose=True)
 ```
@@ -168,9 +168,9 @@ print(f"{rna_pos=} --> {chrm_p=}")
 
 # query an exon position
 exon_number: int = 7
-nt_number: int = 47
+bp_index_in_exon: int = 47
 # -------------------
-info = gA.exon_nt_info(transcript_id, exon_number, nt_number)
+info = gA.exon_nt_info(transcript_id, exon_number, bp_index_in_exon)
 print(info)
 
 # query an amino-acid position
@@ -179,13 +179,13 @@ aa_number: int = 163
 aa_info = gA.aa_exon_info(transcript_id, aa_number)
 print(aa_info)
 
-# query AA variant based on DNA variant
+# query an AA variant given a DNA variant
 ref_allele, var_allele, chromosome_pos = 'G', 'C', 55_152_609
 # ------------------------------------------------------------
 aa_var = gA.DNA_SNP_mut_to_AA_mut(ref_allele, var_allele, chromosome_pos, transcript_id)
 print(f"chr{gA.chrm}:{chromosome_pos}:{ref_allele}>{var_allele} --> {aa_var=}")
 
-# query (all) DNA variants based on an AA variant
+# query (all) DNA variants given an AA variant
 aa_var: str = 'C231S'
 # -------------------
 dna_all_muts = gA.AA_mut_to_DNA_SNP_mut(aa_var, transcript_id)
@@ -218,10 +218,12 @@ species: str = 'mus_musculus'  # required for non Homo sapiens species.
 
 # The suggest annotation file name - informative
 suggest_annotation_file_name, _, release_n = u.suggested_annotation_file_name(species=species)
-print(f"Suggested annotation file name: {suggest_annotation_file_name}. To set the annotation_file_signature, change the release numnber ({release_n}) to 'XXX': {suggest_annotation_file_name.replace(release_n, 'XXX')}")
+# required by update_local_release_to_latest when annotating other species
+suggested_annotation_signature: str = suggest_annotation_file_name.replace(release_n, 'XXX')
+print(f"Suggested annotation file name: {suggest_annotation_file_name}. To set the annotation_file_signature, change the release numnber ({release_n}) to 'XXX': {suggested_annotation_signature}")
 
 # Annotation file signature
-annotation_file_signature: str = f'{species.capitalize()}.GRCm39.XXX.gff3.gz'
+annotation_file_signature: str = suggested_annotation_signature
 
 # update/download annotation file
 download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annotation_folder, 
