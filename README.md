@@ -1,6 +1,6 @@
-# Eukaryotes Gene Annotation
+# Vertebrates Gene Annotation
 
-A Python package that annotates eukaryotes genes and transcripts based on Ensembl.
+A Python package that annotates genes and transcripts in vertebrates species based on Ensembl.
 
 # Python
 
@@ -90,6 +90,7 @@ The transcript table lists the exons and introns in the transcript. Following is
 The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
 
 ![here](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png)
+<img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png" alt="" width="400" height="600">
 
 Here `mRNA_NT_region` gives the mRNA bp count, `ORF_NT_region` gives the ORF bp count, `ORF_AA_region` gives the protein AA count, and `next_exon_frame_alignment` gives the codon phase (i.e., number of bps required in the next exon to complete the last codon in the current exon).
 
@@ -210,7 +211,7 @@ g_a3 = u.Gene_cls('IDH1', gff3_dfs)
 g_a3.info()
 ```
 
-## Annotating other eukaryotes species
+## Annotating other vertebrates species
 ```python
 # Example: Mus_musculus
 
@@ -253,5 +254,3 @@ print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 - [Ensembl GFF3 File Format](https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README)
 - [GFF3 Format](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
 - [Ensembl REST](https://rest.ensembl.org)
-
-

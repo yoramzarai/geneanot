@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long,invalid-name,pointless-string-statement,too-many-arguments,too-many-lines,too-many-instance-attributes,too-many-locals
 # type: ignore   # for Pylance
 """
-Eukaryotes gene Ensembl annotation.
+Vertebrates gene Ensembl annotation.
 
 Based on Ensembl GFF3 annotation file.
 See the GFF3 readme for a description of the different GFF3 fields,

@@ -1,7 +1,7 @@
 [project]
 name = "geneanot"
 version = "0.3.0"
-description = "Eukaryotes gene annotation based on Ensembl."
+description = "Vertebrates gene annotation based on Ensembl."
 readme = "README.md"
 authors = [
     { name = "yoramzarai", email = "yoram.zarai@gmail.com" }
