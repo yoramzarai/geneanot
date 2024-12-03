@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pypa/geneanot"
+Homepage = "https://github.com/yoramzarai/geneanot"
 
 [tool.pytest.ini_options]
 pythonpath = "src"  # allows to import stuff from src/ in a tests/*.py file
