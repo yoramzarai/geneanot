@@ -84,7 +84,7 @@ print(t_info['transcript_name'], t_info['transcript_v_id'], t_info['transcript_v
 
 ## Transcript and RNA tables
 
-The transcript table lists the exons and introns in the transcript. Following is a **partial** transcript table of the transcript `ENST00000275493`.
+The transcript table lists the exons and introns in the transcript. Following is a <u>**partial**</u> transcript table of the transcript `ENST00000275493`.
 
 <img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png" alt="" width="380" height="800">
 
