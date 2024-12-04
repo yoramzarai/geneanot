@@ -32,7 +32,7 @@ Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/
 # Usage
 See the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for a detailed usage description.
 
-Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder). We start with annotating Homo sapiens gene (which is the default species in `geneanot`).
+Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder). We start with annotating a Homo sapiens gene (Homo sapiens is the default species in `geneanot`).
 
 ## Instantiating an annotation object
 ```python
@@ -74,8 +74,10 @@ print(gA.gene_name, gA.gene_ID, gA.gene_desc, gA.gene_type, gA.gene_ver, gA.rev,
 
 ## Transcript annotation
 ```python
+transcript_id: str = 'ENST00000275493'
+
 # show transcript basic information
-gA.transcript_info('ENST00000275493', verbose=True)
+gA.transcript_info(transcript_id, verbose=True)
 
 # the transcript features are accessible via gA.transcripts_info[transcript_id], for example
 t_info = gA.transcripts_info[transcript_id]
@@ -88,7 +90,7 @@ The transcript table lists the exons and introns in the transcript. Following is
 
 <img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png" alt="" width="380" height="800">
 
-The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
+The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF and the AAs to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
 
 ![](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png)
 
@@ -191,7 +193,7 @@ print(f"chr{gA.chrm}:{chromosome_pos}:{ref_allele}>{var_allele} --> {aa_var=}")
 aa_var: str = 'C231S'
 # -------------------
 dna_all_muts = gA.AA_mut_to_DNA_SNP_mut(aa_var, transcript_id)
-print(f"{aa_var=} corresponds to the following DNA variant:")
+print(f"{aa_var=} corresponds to the following DNA variants:")
 for i, (codon, var_info) in enumerate(dna_all_muts.items(), start=1):
     print(f"{i}. {codon=}, {var_info}")
 ```
