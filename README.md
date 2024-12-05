@@ -12,6 +12,15 @@ Requires python>=3.10
 pip install geneanot
 ```
 
+Running it provides a documentation link:
+
+```console
+$ geneanot
+
+Welcome to the vertebrates gene annotation package geneanot.
+Please visit https://github.com/yoramzarai/geneanot for documentation.
+```
+
 # Requirements
 A designated local folder is required to hold the Ensembl annotation file.
 

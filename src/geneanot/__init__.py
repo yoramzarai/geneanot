@@ -22,5 +22,5 @@ __all__ = [
 
 # an example of an entry point. See [project.scripts] in pyproject.toml
 def main() -> None:
-    print("Welcome to the eukaryotes gene annotation package geneanot.\n\
-Please visit https://github.com/yoramzarai/geneanot for description and usage information.")
+    print("Welcome to the vertebrates gene annotation package geneanot.\n\
+Please visit https://github.com/yoramzarai/geneanot for documentation.")
