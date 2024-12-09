@@ -514,6 +514,8 @@ class Transcript_gff3_cls:
             return {
                 "region": "_".join(df_pos.iloc[0]["name"].split()),
                 "region_pos": abs(chrm_pos - df_pos.iloc[0]["region"][0]) + 1,
+                # added on 12/9/24 - distance from boundary. 0 implies right at the region boundary
+                "dist_from_region_boundary": (abs(chrm_pos - df_pos.iloc[0]["region"][0]), abs(chrm_pos - df_pos.iloc[0]["region"][1])),
             } | {"bp": self._extract_sequence(chrm_pos, chrm_pos, rev=self.rev)}
         print(f"Chromosome position {chrm_pos:,} out of {transcript_id} bound.")
         return None

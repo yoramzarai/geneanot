@@ -144,8 +144,8 @@ def test_transcript_start_end_chrm_codon(gene: str, transcript: str, expected: t
     "gene, transcript, chrm_pos, expected",
     [
         ("EGFR", "ENST00000275493", 55_157_663, {
-            'region': 'Exon_11', 'region_pos': 1, 'segment': 'ORF', 'pos_in_segment': 1208, 'NT': 'G', 'codon_number': 403, 'nt_in_codon': 2, 'codon': 'GGG', 'aa': 'G'}),
-        ("IDH1", "ENST00000345146", 208_243_594, {'region': 'Exon_6', 'region_pos': 11, 'segment': 'ORF', 'pos_in_segment': 531, 'NT': 'T', 'codon_number': 177, 'nt_in_codon': 3, 'codon': 'GGT', 'aa': 'G'}),
+            'region': 'Exon_11', 'region_pos': 1, 'dist_from_region_boundary': (0, 90), 'segment': 'ORF', 'pos_in_segment': 1208, 'NT': 'G', 'codon_number': 403, 'nt_in_codon': 2, 'codon': 'GGG', 'aa': 'G'}),
+        ("IDH1", "ENST00000345146", 208_243_594, {'region': 'Exon_6', 'region_pos': 11, 'dist_from_region_boundary': (10, 167), 'segment': 'ORF', 'pos_in_segment': 531, 'NT': 'T', 'codon_number': 177, 'nt_in_codon': 3, 'codon': 'GGT', 'aa': 'G'}),
     ],
 )
 def test_query_chrm_pos(gene: str, transcript: str, chrm_pos: int, expected: dict) -> None:
@@ -179,8 +179,8 @@ def test_map_rna_pos(gene: str, transcript: str, rna_pos: int, expected: tuple[i
 @pytest.mark.parametrize(
     "gene, transcript, rna_pos, expected",
     [
-        ("EGFR", "ENST00000275493", 685, {'chrm_pos': 55143488, 'region': 'Exon_3', 'region_pos': 184, 'segment': 'ORF', 'pos_in_segment': 424, 'NT': 'G', 'codon_number': 142, 'nt_in_codon': 1, 'codon': 'GAA', 'aa': 'E'}),
-        ("IDH1", "ENST00000345146", 685, {'chrm_pos': 208245377, 'region': 'Exon_5', 'region_pos': 48, 'segment': 'ORF', 'pos_in_segment': 462, 'NT': 'A', 'codon_number': 154, 'nt_in_codon': 3, 'codon': 'ATA', 'aa': 'I'}),
+        ("EGFR", "ENST00000275493", 685, {'chrm_pos': 55143488, 'region': 'Exon_3', 'region_pos': 184, 'dist_from_region_boundary': (183, 0), 'segment': 'ORF', 'pos_in_segment': 424, 'NT': 'G', 'codon_number': 142, 'nt_in_codon': 1, 'codon': 'GAA', 'aa': 'E'}),
+        ("IDH1", "ENST00000345146", 685, {'chrm_pos': 208245377, 'region': 'Exon_5', 'region_pos': 48, 'dist_from_region_boundary': (47, 58), 'segment': 'ORF', 'pos_in_segment': 462, 'NT': 'A', 'codon_number': 154, 'nt_in_codon': 3, 'codon': 'ATA', 'aa': 'I'}),
     ],
 )
 def test_query_rna_pos(gene: str, transcript: str, rna_pos: int, expected: dict) -> None:
