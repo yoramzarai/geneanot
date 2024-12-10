@@ -391,3 +391,22 @@ class REST_API():
                                           headers={ "Content-Type" : "application/json"})):
             return [], []
         return [x['primary_id'] for x in response], response
+
+    def convert_refseq_id(self, refseq_id: str, species: str = 'homo_sapiens', id_type: str = 'symbol') -> list[dict]:
+        """Converts a RefSeq ID to Ensembl ID.
+
+        Currently supports only the following IDs:
+        - NM_
+        - NP_
+
+        Args:
+            refseq_id (str): RefSeq ID without version
+
+        Returns:
+            list[dict]: list of dictionaries with 'id' and 'type' keys.
+        """
+        if (info := self.endpoint_get_base(ext=f"/xrefs/{id_type}/{species}/{refseq_id.split('.')[0]}?", headers={"Content-Type": "application/json"})):
+            # convert Ensembl gene ID to gene name
+            if (gene_id := [x['id'] for x in info if x['type'] == 'gene']):
+                return [{'id': self.ENSG_id2symbol(gene_id[0]), 'type': 'gene_symbol'}] + info
+        return info
