@@ -407,6 +407,6 @@ class REST_API():
         """
         if (info := self.endpoint_get_base(ext=f"/xrefs/{id_type}/{species}/{refseq_id.split('.')[0]}?", headers={"Content-Type": "application/json"})):
             # convert Ensembl gene ID to gene name
-            if (gene_id := [x['id'] for x in info if x['type'] == 'gene']):
-                return [{'id': self.ENSG_id2symbol(gene_id[0]), 'type': 'gene_symbol'}] + info
+            if (gene_ids := [x['id'] for x in info if x['type'] == 'gene']):
+                return [{'id': self.ENSG_id2symbol(gene_id), 'type': f'gene_{id_type}'} for gene_id in gene_ids] + info
         return info
