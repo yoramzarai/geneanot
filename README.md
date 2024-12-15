@@ -41,7 +41,7 @@ Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/
 # Usage
 See the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for a detailed usage description.
 
-Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder). We start with annotating a Homo sapiens gene (Homo sapiens is the default species in `geneanot`).
+Here are few basic usage examples (assuming the code is executed from the `.Scripts/` folder). We start with annotating a Homo sapiens gene (Homo sapiens is the default assumed species in `geneanot`).
 
 ## Instantiating an annotation object
 ```python
@@ -161,6 +161,14 @@ print(f"\nA modified transcript containing exons {', '.join(map(str,use_exon_lis
 
 ## Queries
 ```python
+# query the start and stop codon positions in the chromosome and in the RNA
+# --------------------------------------------------------------------------
+start_codon_info, stop_codon_info = gA.start_and_stop_codons_pos(transcript_id)
+
+# query the start and end ORF positions in the exons
+# --------------------------------------------------
+orf_start_end_info = gA.orf_start_and_end_exon_info(transcript_id)
+
 # query a chromosome position
 chrm_pos: int = 55_157_663
 # ---------------------------
@@ -172,6 +180,11 @@ rna_pos: int = 685
 # ----------------
 chrm_info = gA.rna_pos2chrm_info(transcript_id, rna_pos)
 print(chrm_info)
+
+# map a chromosome position to the RNA position
+chrm_pos: int = 55_211_628 
+# ------------------------
+rna_pos = gA.chrm_pos2rna_pos(transcript_id, chrm_pos)
 
 # map a RNA position to the chromosome position
 rna_pos: int = 685
@@ -185,6 +198,12 @@ bp_index_in_exon: int = 47
 # -------------------
 info = gA.exon_nt_info(transcript_id, exon_number, bp_index_in_exon)
 print(info)
+
+# query the RNA segment of an exon position
+exon_number: int = 28
+bp_index_in_exon: int = 400
+# --------------------------
+exon_segment_info := gA.exon_nt_segment(transcript_id, exon_number, bp_index_in_exon)
 
 # query an amino-acid position
 aa_number: int = 163
@@ -221,6 +240,7 @@ g_a2 = u.Gene_cls('BRCA1', gff3_dfs)
 g_a2.info()
 g_a3 = u.Gene_cls('IDH1', gff3_dfs)
 g_a3.info()
+...
 ```
 
 ## Annotating other vertebrates species
@@ -229,20 +249,16 @@ g_a3.info()
 
 species: str = 'mus_musculus'  # required for non Homo sapiens species.
 
-# The suggest annotation file name - informative
+# The suggest annotation file name (used to extract annotation signature, which is required next)
 suggest_annotation_file_name, _, release_n = u.suggested_annotation_file_name(species=species)
-# required by update_local_release_to_latest when annotating other species
-suggested_annotation_signature: str = suggest_annotation_file_name.replace(release_n, 'XXX')
-print(f"Suggested annotation file name: {suggest_annotation_file_name}. To set the annotation_file_signature, change the release numnber ({release_n}) to 'XXX': {suggested_annotation_signature}")
-
-# Annotation file signature
-annotation_file_signature: str = suggested_annotation_signature
 
 # update/download annotation file
-download_done, ensembl_file, local_file = u.update_local_release_to_latest(Annotation_folder, 
-                                                                           enable_download=True, 
-                                                                           gff3_pattern=annotation_file_signature,
-                                                                           species=species)
+download_done, ensembl_file, local_file = u.update_local_release_to_latest(
+    Annotation_folder, 
+    enable_download=True, 
+    gff3_pattern=suggest_annotation_file_name.replace(release_n, 'XXX'),
+    species=species)
+
 annotation_full_file = Annotation_folder / (ensembl_file if download_done else local_file)
 
 # instantiate annotation class (can use gene name or gene ID) in remote mode (see above for a local mode example)
