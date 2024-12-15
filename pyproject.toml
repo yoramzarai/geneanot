@@ -34,13 +34,9 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "ipykernel>=6.29.5",
     "pytest>=8.3.3",
 ]
-
-#[dependency-groups]
-#dev = [
-#    "ipykernel>=6.29.5",
-#]
 
 # CLI entry point (name="function", where name is the executable we can run)
 [project.scripts]
