@@ -1215,9 +1215,7 @@ class Gene_gff3_cls(Transcript_gff3_cls):
             return None  # aa_pos not valid
 
         if aa_r != aa_info["AA"]:
-            print(
-                f"Position {aa_pos} in the aa chain is {aa_info['AA']}, but the input aa mutation ({aa_mut}) implies that it is {aa_r} !!"
-            )
+            print(f"Position {aa_pos} in the aa chain is {aa_info['AA']}, but the input aa mutation ({aa_mut}) implies that it is {aa_r} !!")
             return None
 
         ref_codon = aa_info["codon"]

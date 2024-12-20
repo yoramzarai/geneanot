@@ -75,7 +75,7 @@ gA.show_all_transcript_IDs()
 # gene start and end coordinates
 print(f"\nGene start = {gA.gene_start:,}, gene end = {gA.gene_end:,}")
 
-print(f"{gene=} encoded on the {'negative' if gA.rev else 'positive'} DNA strand.")
+print(f"\n{gene=} encoded in chromosome {gA.chrm} on the {'negative' if gA.rev else 'positive'} DNA strand.")
 
 # the various gene attributes printed from the above commands are also available via gA
 print(gA.gene_name, gA.gene_ID, gA.gene_desc, gA.gene_type, gA.gene_ver, gA.rev, gA.chrm, gA.gene_start, gA.gene_end, len(gA.transcripts_info), sep='\n')
@@ -99,7 +99,7 @@ The transcript table lists the exons and introns in the transcript. Following is
 
 <img src="https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/partial_transcript_table.png" alt="" width="380" height="800">
 
-The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF and the AAs to the exons. Following is the mRNA table of the transcript `ENST00000275493`.
+The RNA table lists the exons in the RNA, and in case of protein-coding transcripts, maps the ORF and the AAs to the exons. Following is the RNA table of the transcript `ENST00000275493`.
 
 ![](https://github.com/yoramzarai/geneanot/blob/main/metadata/figs/mRNA_table.png)
 
@@ -199,7 +199,7 @@ bp_index_in_exon: int = 47
 info = gA.exon_nt_info(transcript_id, exon_number, bp_index_in_exon)
 print(info)
 
-# query the RNA segment of an exon position
+# query the RNA segment (UTR, ORF) of an exon position
 exon_number: int = 28
 bp_index_in_exon: int = 400
 # --------------------------

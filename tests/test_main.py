@@ -5,21 +5,21 @@ The "expected" in the tests below are based on release 113 (Homo_sapiens.GRCh38.
 """
 from pathlib import Path
 import pytest
-import geneanot as ga
+import geneanot as u
 
 
-human_gff3_dfs = ga.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz'))
+human_gff3_dfs = u.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz'))
 
-def get_homo_sapiens_object(gene: str) -> ga.Gene_cls:
-    g = ga.Gene_cls(gene, human_gff3_dfs, verbose=False)
+def get_homo_sapiens_object(gene: str) -> u.Gene_cls:
+    g = u.Gene_cls(gene, human_gff3_dfs, verbose=False)
     # if the chromosome file exists, use it (local mode - faster retrival), otherwise use remote access.
     chrm_fasta_file = f'Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.{g.chrm}.fa'
     g.chrm_fasta_file = chrm_fasta_file if Path(chrm_fasta_file).is_file() else None
     return g
 
-def get_mus_musculus_object(gene: str) -> ga.Gene_cls:
+def get_mus_musculus_object(gene: str) -> u.Gene_cls:
     annotation_full_file: Path = Path("AnnotationDB/Mus_musculus.GRCm39.113.gff3.gz")
-    g = ga.Gene_cls(gene, annotation_full_file, species="mus_musculus", verbose=False)
+    g = u.Gene_cls(gene, annotation_full_file, species="mus_musculus", verbose=False)
     chrm_fasta_file = f'Chromosome/Mus_musculus.GRCm39.dna_sm.chromosome.{g.chrm}.fa'
     g.chrm_fasta_file = chrm_fasta_file if Path(chrm_fasta_file).is_file() else None
     return g
