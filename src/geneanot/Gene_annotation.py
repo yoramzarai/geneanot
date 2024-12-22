@@ -17,7 +17,6 @@ import geneanot.ensembl_gene_annotations_utils as egna
 from geneanot.excel_utils import dfs_to_excel_file, create_excel_description_sheet
 from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
 
-
 def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Parse the annotation file into two dataframes, which can be used to instantiate the annotation class.
