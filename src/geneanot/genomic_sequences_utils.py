@@ -5,22 +5,23 @@ Utils related to extracting genomic sequences.
 """
 from pathlib import Path
 import numpy as np
-from geneanot.Fasta_segment import Fasta_segment
-from geneanot.ensembl_rest_utils import REST_API
+from .Fasta_segment import Fasta_segment
+from .ensembl_rest_utils import REST_API
 import geneanot.translation as tran
 
 
 def fetch_seq(source_info: Path | str, start_p: int, end_p: int, rev: bool = False, species: str = 'homo_sapiens', rest_assembly: str = 'GRCh38') -> str:
     """Fetch sequence either from a local Fasta file or from the Ensembl REST API.
+
     The fetch algorithm is:
 
                 if isinstance(source_info, Path):
                     # fetch from the chromosome Fasta file source_info
                 else:  # isinstance(source_info, str)
-                    # fetch from Ensembl REST API
+                    # fetch from Ensembl REST API from chromosome number source_info
 
     Args:
-        source_info (Path | str):a chromosome fasta file (of type Path) or the chromosome number of type str (e.g., '1' or 'Y').
+        source_info (Path | str): a chromosome fasta file (of type Path) or the chromosome number of type str (e.g., '1' or 'Y').
         start_p (int): 1-based start coordinate
         end_p (int): 1-based end coordinate
         rev (bool, optional): reverse-complement the sequence. Defaults to False.
@@ -28,9 +29,8 @@ def fetch_seq(source_info: Path | str, start_p: int, end_p: int, rev: bool = Fal
         rest_assembly (str, optional): REST assembly (relevant for isinstance(source_info, str). Defaults to 'GRCh38'.
 
     Returns:
-        str: _description_
+        str: the fetched sequence.
     """
-
     if isinstance(source_info, Path):
         # load from a local chromosome Fasta file 
         return extract_fasta_seq(str(source_info), start_p, end_p, rev=rev)

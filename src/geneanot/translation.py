@@ -45,7 +45,8 @@ def reverse_complement(s: str, complement: dict | None = None) -> str:
     s_rev = s[::-1]
     lower = [b.islower() for b in list(s_rev)]
     bases = [complement.get(base, base) for base in list(s_rev.upper())]
-    rev_compl = ''.join([b.lower() if l else b for l, b in zip(lower, bases)])
+    #rev_compl = ''.join([b.lower() if l else b for l, b in zip(lower, bases)])
+    rev_compl = ''.join([bs.lower() if lw else bs for lw, bs in zip(lower, bases)])
     return rev_compl
 
 

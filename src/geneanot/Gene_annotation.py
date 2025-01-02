@@ -7,7 +7,6 @@ Based on Ensembl GFF3 annotation file.
 See the GFF3 readme for a description of the different GFF3 fields,
 for example: https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README
 """
-# import pathlib
 from pathlib import Path
 from dataclasses import dataclass, field
 import numpy as np
@@ -18,9 +17,7 @@ import geneanot.translation as tran
 import geneanot.ensembl_gene_annotations_utils as egna
 from geneanot.excel_utils import dfs_to_excel_file, create_excel_description_sheet
 #from .excel_utils import dfs_to_excel_file, create_excel_description_sheet
-#from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
 from geneanot.genomic_sequences_utils import fetch_seq, pos2seg_info
-#from .genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
 
 def ensembl_gff3_df(file: Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
