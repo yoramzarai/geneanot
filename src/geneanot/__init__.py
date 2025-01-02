@@ -6,6 +6,7 @@ from .annotation_file_utils import (
     get_ensembl_release, 
     update_local_release_to_latest
 )
+from .genomic_sequences_utils import fetch_seq
 
 __all__ = [
     "Gene_cls", 
@@ -13,7 +14,8 @@ __all__ = [
     "suggested_annotation_file_name",
     "get_annotation_files_info_in_folder",
     "get_ensembl_release",
-    "update_local_release_to_latest"
+    "update_local_release_to_latest",
+    "fetch_seq",
 ]
 # from geneanot.Gene_annotation import *
 # from geneanot.annotation_file_utils import *

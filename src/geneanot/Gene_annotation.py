@@ -7,17 +7,22 @@ Based on Ensembl GFF3 annotation file.
 See the GFF3 readme for a description of the different GFF3 fields,
 for example: https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README
 """
-import pathlib
+# import pathlib
+from pathlib import Path
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
 import geneanot.translation as tran
+#from . import translation as tran
 import geneanot.ensembl_gene_annotations_utils as egna
 from geneanot.excel_utils import dfs_to_excel_file, create_excel_description_sheet
-from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
+#from .excel_utils import dfs_to_excel_file, create_excel_description_sheet
+#from geneanot.genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
+from geneanot.genomic_sequences_utils import fetch_seq, pos2seg_info
+#from .genomic_sequences_utils import extract_chromosome_seq, extract_fasta_seq, pos2seg_info
 
-def ensembl_gff3_df(file: pathlib.Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+def ensembl_gff3_df(file: Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Parse the annotation file into two dataframes, which can be used to instantiate the annotation class.
 
@@ -43,7 +48,7 @@ class Transcript_gff3_cls:
 
     Instantiating this class requires the following inputs:
     1. gene name or gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
-    2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
+    2. Either the GFF3 file (Path), or a tuple of the GFF3 dataframe and its subset dataframe
        (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
        Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
     3. Optional - verbose flag.
@@ -56,9 +61,9 @@ class Transcript_gff3_cls:
     the primary transcript (pre-RNA sequence).
     """
     gene: str  # gene name or gene ID
-    gff3_source: pathlib.Path | tuple  # Ensembl GFF3 file name, or a tuple of the GFF3 dataframe and its gene type subset
+    gff3_source: Path | tuple  # Ensembl GFF3 file name, or a tuple of the GFF3 dataframe and its gene type subset
     species: str = 'homo_sapiens'  # needed when using remote chromosome sequence extraction
-    chrm_fasta_file: str | None = None  # if None using remote sequence extraction, otherwise using this chromosome fasta file
+    chrm_fasta_file: Path | None = None  # if None using remote sequence extraction, otherwise using this chromosome fasta file
     verbose: bool = True  # set to False at instantiation to suppress prints
 
     # user should not set this. I need to change this when a new REST API URL is available.
@@ -86,7 +91,7 @@ class Transcript_gff3_cls:
     __protein_coding_labels_in_biotype: list | None = None
 
     def __post_init__(self):
-        if isinstance(self.gff3_source, pathlib.Path):  # instantiating by GFF3 file name
+        if isinstance(self.gff3_source, Path):  # instantiating by GFF3 file name
             self.source = str(self.gff3_source)
             if self.verbose:
                 print(f"Loading {self.gff3_source} to a dataframe ... ", end='')
@@ -129,8 +134,27 @@ class Transcript_gff3_cls:
         """Chromosome data access mode."""
         return 'remote' if self.chrm_fasta_file is None else 'local'
 
+    # def _extract_sequence(self, start_p: int, end_p: int, rev: bool = False) -> str:
+    #     """Extracts sequence from teh chromosome.
+
+    #     Args:
+    #     start_p (int): 1-based start position.
+    #     end_p (int): 1-based end position.
+    #     rev (bool, optional): True to extract the reveresed-complement sequence 
+    #                          (i.e. the sequence in the negative strand). Defaults to False.
+    # Returns:
+    #     str: The extracted sequence.
+    #     """
+    #     # if self.chrm_fasta_file is None:
+    #     if self.access_mode() == 'remote':
+    #         # use remote chromosome file via Ensembl REST API
+    #         return extract_chromosome_seq(self.chrm, start_p, end_p, rev=rev, species=self.species, rest_assembly=self._rest_assembly)
+    #     # use local fasta file
+    #     return extract_fasta_seq(self.chrm_fasta_file, start_p, end_p, rev=rev)
+
+
     def _extract_sequence(self, start_p: int, end_p: int, rev: bool = False) -> str:
-        """Extracts sequence from teh chromosome.
+        """Extracts sequence from the chromosome.
 
         Args:
         start_p (int): 1-based start position.
@@ -140,12 +164,8 @@ class Transcript_gff3_cls:
     Returns:
         str: The extracted sequence.
         """
-        # if self.chrm_fasta_file is None:
-        if self.access_mode() == 'remote':
-            # use remote chromosome file via Ensembl REST API
-            return extract_chromosome_seq(self.chrm, start_p, end_p, rev=rev, species=self.species, rest_assembly=self._rest_assembly)
-        # use local fasta file
-        return extract_fasta_seq(self.chrm_fasta_file, start_p, end_p, rev=rev)
+        source_info: Path | str = self.chrm if self.access_mode() == 'remote' else self.chrm_fasta_file
+        return fetch_seq(source_info, start_p, end_p, rev=rev, species=self.species, rest_assembly=self._rest_assembly)
 
     def __len__(self) -> int:
         "Number of transcripts."
@@ -1576,16 +1596,16 @@ class Gene_cls(Gene_gff3_cls):
 
     Instantiating this class requires the following inputs:
     1. gene name or gene ID (ENS<species prefix>G, where <species prefix> is empty for Homo sapiens).
-    2. Either the GFF3 file (pathlib.Path), or a tuple of the GFF3 dataframe and its subset dataframe
+    2. Either the GFF3 file (Path), or a tuple of the GFF3 dataframe and its subset dataframe
        (containing only rows with Type value defined by the user (deafult is egna.Gene_type_values)).
        Use the function ensembl_gff3_df to generate this tuple if instantiating using the tuple.
     3. Optional - verbose flag.
     4. Optional - species
     5. Optional - chromosome Fasta file.
     """
-    def __init__(self, gene: str, gff3_source: pathlib.Path | tuple, 
+    def __init__(self, gene: str, gff3_source: Path | tuple, 
                  species: str = 'homo_sapiens',
-                 chrm_fasta_file: str | None = None,
+                 chrm_fasta_file: Path | None = None,
                  verbose: bool = True) -> None:
         super().__init__(gene, gff3_source, species=species, chrm_fasta_file=chrm_fasta_file, verbose=verbose)
 
