@@ -7,6 +7,7 @@ from .annotation_file_utils import (
     update_local_release_to_latest
 )
 from .genomic_sequences_utils import fetch_seq
+from importlib.metadata import version
 
 __all__ = [
     "Gene_cls", 
@@ -24,5 +25,5 @@ __all__ = [
 
 # an example of an entry point. See [project.scripts] in pyproject.toml
 def main() -> None:
-    print("Welcome to the vertebrates gene annotation package geneanot.\n\
+    print(f"Welcome to the vertebrates gene annotation package geneanot version {version('geneanot')}.\n\
 Please visit https://github.com/yoramzarai/geneanot for documentation.")

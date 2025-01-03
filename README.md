@@ -278,22 +278,27 @@ print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 ```
 
 ## Extra
-`geneanot` provides a function to fetch a sequence from a chromosome. It can be used to either fetch a sequence from a provided chromosome Fasta file, or from Ensembl REST API.
+`geneanot` supports also an arbitrary sequence retrievel from a chromosome, using either a chromosome Fasta file, or remotely via Ensembl REST API. 
 
 ```python
-# fetching from a local chromosome file (requires a valid chromosome Fasta file)
+# fetching using a chromosome Fasta file
 chrm_fasta_file: Path = Path('./../Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa')
 start_p: int = 122_989_200  # 1-based start coordinate
 end_p: int = 122_989_229  # 1-based end coordinate
-seq = u.fetch_seq(chrm_fasta_file, start_p, end_p, rev=False)
+rev: bool = False  # True to fetch the reveresed complement sequence
+
+seq = u.fetch_seq(chrm_fasta_file, start_p, end_p, rev=rev)
 print(seq)
 
-# or, fetching using Ensembl REST API (requires the chromosome number)
+
+# fetching remotely (this requires a network connection)
 chrm: str = '5'  # chromosome number, e.g., '1' or 'Y'
 start_p: int = 52_120_100  # 1-based start coordinate
 end_p: int = 52_120_120  # 1-based end coordinate
 species: str = "Danio_rerio"
-seq = u.fetch_seq(chrm, start_p, end_p, rev=True, species=species)
+rev: bool = True  # Troe to fetch the reveresed complement sequence
+
+seq = u.fetch_seq(chrm, start_p, end_p, rev=rev, species=species)
 print(seq)
 ```
 

@@ -294,8 +294,10 @@ def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, e
 @pytest.mark.parametrize(
     "chrm_info, start_p, end_p, rev, species, expected_seq",
     [
-        (Path('Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa'), 122_989_200, 122_989_200 + 29, False, 'homo_sapiens', "gcacccactgcgatctcagagcaacctggg"), 
-        ('5', 52_120_100, 52_120_120, True, 'Danio_rerio', "TTTTAGAGGTTGAACAGCCAC")
+        (Path('Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa'), 122_989_200, 122_989_200 + 29, False, 'homo_sapiens', "gcacccactgcgatctcagagcaacctggg"),
+        ('11', 16_341_123, 16_341_143, False, 'mus_musculus', "TCAACATCCTTAATCATCAGG"),
+        ('5', 52_120_100, 52_120_120, True, 'Danio_rerio', "TTTTAGAGGTTGAACAGCCAC"),
+        ('14', 80_237_279, 80_237_310, True, 'Pan troglodytes', 'AGTAAATCTCCAATAAAGTTATCGTCTGTTCA'),
     ]
 )
 def test_fetch_seq(chrm_info: Path | str, start_p: int, end_p: int, rev: bool, species: str, expected_seq: str) -> None:
