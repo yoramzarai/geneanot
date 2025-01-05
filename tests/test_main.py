@@ -289,8 +289,8 @@ def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, e
     assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
 
 
-# Extra
-# ======
+# Chromosome sequence fetch
+# =========================
 @pytest.mark.parametrize(
     "chrm_info, start_p, end_p, rev, species, expected_seq",
     [
@@ -298,6 +298,7 @@ def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, e
         ('11', 16_341_123, 16_341_143, False, 'mus_musculus', "TCAACATCCTTAATCATCAGG"),
         ('5', 52_120_100, 52_120_120, True, 'Danio_rerio', "TTTTAGAGGTTGAACAGCCAC"),
         ('14', 80_237_279, 80_237_310, True, 'Pan troglodytes', 'AGTAAATCTCCAATAAAGTTATCGTCTGTTCA'),
+        ('Y', 1_100_800, 1_100_850, True, 'homo_sapiens', "ACTTACCTCTCTTAAAACCTCATTGGAATAAAACTTAAAAGGAATAAAAAA")
     ]
 )
 def test_fetch_seq(chrm_info: Path | str, start_p: int, end_p: int, rev: bool, species: str, expected_seq: str) -> None:

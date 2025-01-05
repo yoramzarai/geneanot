@@ -278,7 +278,7 @@ print(f"\nprotein:\n{aa_seq}\n{len(aa_seq):,} AAs.")
 ```
 
 ## Extra
-`geneanot` supports also an arbitrary sequence retrievel from a chromosome, using either a chromosome Fasta file, or remotely via Ensembl REST API. 
+`geneanot` supports also an arbitrary sequence retrievel from a chromosome, using either a chromosome Fasta file, or remotely via the Ensembl REST API. 
 
 ```python
 # fetching using a chromosome Fasta file
@@ -295,7 +295,7 @@ print(seq)
 chrm: str = '5'  # chromosome number, e.g., '1' or 'Y'
 start_p: int = 52_120_100  # 1-based start coordinate
 end_p: int = 52_120_120  # 1-based end coordinate
-species: str = "Danio_rerio"
+species: str = "Danio_rerio"  # species
 rev: bool = True  # Troe to fetch the reveresed complement sequence
 
 seq = u.fetch_seq(chrm, start_p, end_p, rev=rev, species=species)
