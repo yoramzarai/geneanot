@@ -4,9 +4,10 @@ Activate environment and run "pytest".
 The "expected" in the tests below are based on release 113 (Homo_sapiens.GRCh38.113.gff3.gz).
 """
 from pathlib import Path
-import pytest
-import geneanot as u
 
+import pytest
+
+import geneanot as u
 
 human_gff3_dfs = u.ensembl_gff3_df(Path('AnnotationDB/Homo_sapiens.GRCh38.113.gff3.gz'))
 
@@ -295,6 +296,8 @@ def test_mouse_gene_transcript_partial_protein_seq(gene: str, transcript: str, e
     "chrm_info, start_p, end_p, rev, species, expected_seq",
     [
         (Path('Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa'), 122_989_200, 122_989_200 + 29, False, 'homo_sapiens', "gcacccactgcgatctcagagcaacctggg"),
+        (Path('Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa'), 22_345_678, 22_345_790, True, 'homo_sapiens', "TTTGTTTATTGAGTTGTTTATTTGATTTGTTTATCCTTTCAAATATTCCAGCCTTCAATTTAGAGAATTTGTTTGAAATATATTATAAAAACAGAAGATAGGAGAAAGGAAAA"),
+        (Path('Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.2.fa'), 60_000_000, 60_000_123, False, 'homo_sapiens', "ACTATCCTAAATCAATTAAGTCAGATCTTTGGGGTATAGAACCCTGGAATTTCTCTTTCAGGGGAAAAAAATGGTTGACTCAGGTGATTCTGATACTGAGCCAGGATGGAGAAGCAAACAAAAT"),
         ('11', 16_341_123, 16_341_143, False, 'mus_musculus', "TCAACATCCTTAATCATCAGG"),
         ('5', 52_120_100, 52_120_120, True, 'Danio_rerio', "TTTTAGAGGTTGAACAGCCAC"),
         ('14', 80_237_279, 80_237_310, True, 'Pan troglodytes', 'AGTAAATCTCCAATAAAGTTATCGTCTGTTCA'),

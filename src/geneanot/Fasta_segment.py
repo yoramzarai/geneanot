@@ -1,11 +1,9 @@
-# pylint: disable=line-too-long,invalid-name,pointless-string-statement,too-many-arguments,too-many-locals
 """
 Efficient Fasta segment retrival.
 """
-import os
 import gzip as gz
+import os
 from typing import Callable, Generator
-import numpy as np
 
 
 def myopen(file: str) -> Callable:
@@ -103,7 +101,8 @@ class Fasta_segment():
                 init_loc, line_size, l_size = self.__compute_file_stats(fp)
                 self.files_info[file] = {'init_loc': init_loc, 'l_size': l_size, 'line_size': line_size}
 
-            offset_num_lines, offset_in_line = offset // l_size, np.mod(offset, l_size)
+            #offset_num_lines, offset_in_line = offset // l_size, np.mod(offset, l_size)
+            offset_num_lines, offset_in_line = divmod(offset, l_size)
             # accounting for extra characters due to multiple \n that will be discarded
             add_for_newline = ((offset+size-1) // l_size) - offset_num_lines
             fp.seek(init_loc + offset_num_lines*line_size + offset_in_line)
@@ -210,7 +209,8 @@ class Fasta_segment():
                 l_size = line_size - 1
                 self.files_info[token] = {'init_loc': init_loc, 'l_size': l_size, 'line_size': line_size}
 
-            offset_num_lines, offset_in_line = offset // l_size, np.mod(offset, l_size)
+            #offset_num_lines, offset_in_line = offset // l_size, np.mod(offset, l_size)
+            offset_num_lines, offset_in_line = divmod(offset, l_size)
             # accounting for extra characters due to multiple \n that will be discarded
             add_for_newline = ((offset+size-1) // l_size) - offset_num_lines
             fp.seek(init_loc + offset_num_lines*line_size + offset_in_line)

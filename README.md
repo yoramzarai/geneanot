@@ -34,7 +34,7 @@ Some of the methods require the chromosome sequence data. Two chromosome data **
 `local` access implies faster sequence retrival from the chromosome, whereas `remote` access requires network connection and implies a slower sequence retrival.
 
 The provided chromosome Fasta file, in case of a `local` access mode, MUST contain equal number of bps per row in all sequence
-rows (other than possibly the last row). The chromosome Fasta file can be downloaded from Ensembl (Ensembl chromosome Fasta files contain equal number of bps per sequence row).
+rows (other than possibly the last row). The chromosome Fasta file can be either gzip compressed (with a `.gz` suffix) or uncompressed, and can be downloaded from Ensembl (Ensembl chromosome Fasta files contain equal number of bps per sequence row).
 
 Please consult the [usage notebook](https://github.com/yoramzarai/geneanot/blob/main/Scripts/usage_examples.ipynb) for more information.
 
