@@ -1,6 +1,6 @@
 [project]
 name = "geneanot"
-version = "0.5.1"
+version = "0.6.0"
 description = "Vertebrates gene annotation based on Ensembl."
 readme = "README.md"
 authors = [

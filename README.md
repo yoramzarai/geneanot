@@ -192,6 +192,24 @@ rna_pos: int = 685
 chrm_p = gA.rna_pos2chrm_pos(transcript_id, rna_pos)
 print(f"{rna_pos=} --> {chrm_p=}")
 
+# map a ORF position to the RNA position
+orf_pos: int = 124
+# ----------------
+rna_p = gA.orf_pos2rna_pos(transcript_id, orf_pos)
+print(f"{orf_pos=:,} --> {rna_p=:,}")
+
+# map a RNA position to the ORF position
+rna_pos: int = 385
+# ----------------
+orf_p = gA.rna_pos2orf_pos(transcript_id, rna_pos)
+print(f"{rna_pos=:,} --> {orf_p=:,}")
+
+# query a ORF position
+orf_pos: int = 124
+# ----------------
+chrm_info = gA.orf_pos2chrm_info(transcript_id, orf_pos)
+print(chrm_info)
+
 # query an exon position
 exon_number: int = 7
 bp_index_in_exon: int = 47

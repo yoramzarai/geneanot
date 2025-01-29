@@ -7,17 +7,20 @@ Based on Ensembl GFF3 annotation file.
 See the GFF3 readme for a description of the different GFF3 fields,
 for example: https://ftp.ensembl.org/pub/release-113/gff3/homo_sapiens/README
 """
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-import geneanot.translation as tran
 #from . import translation as tran
 import geneanot.ensembl_gene_annotations_utils as egna
-from geneanot.excel_utils import dfs_to_excel_file, create_excel_description_sheet
+import geneanot.translation as tran
+from geneanot.excel_utils import create_excel_description_sheet, dfs_to_excel_file
+
 #from .excel_utils import dfs_to_excel_file, create_excel_description_sheet
 from geneanot.genomic_sequences_utils import fetch_seq, pos2seg_info
+
 
 def ensembl_gff3_df(file: Path, gene_type_values: list = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -1134,6 +1137,71 @@ class Gene_gff3_cls(Transcript_gff3_cls):
         if (a := super().rna_pos2chrm_pos(transcript_id, rna_pos)) == -1:
             return None
         return {'chrm_pos': a[0]} | self.chrm_pos_info(transcript_id, a[0])
+
+    def rna_pos2orf_pos(self, transcript_id: str, rna_pos: int) -> int | None:
+            """Converts RNA position to ORF position.
+
+            Args:
+                transcript_id (str): ENST ID.
+                rna_pos (int): 1-based RNA position.
+
+            Returns:
+                int | None: Corresponding 1-based ORF position.
+            """
+            if not self.is_protein_coding_transcript(transcript_id):
+                print(f"{transcript_id} is not a protein coding transcript !!")
+                return None
+            
+            if (start_end_codons_info := self.start_and_stop_codons_pos(transcript_id)) is None:
+                return None
+            start_codon_first_bp_rna_pos, stop_codon_last_bp_rna_pos = start_end_codons_info[0][1], start_end_codons_info[1][1] + 2  # start_end_codons_info[1][1] is first bp of codon
+            if (rna_pos < start_codon_first_bp_rna_pos) or (rna_pos > stop_codon_last_bp_rna_pos):
+                print(f"RNA position {rna_pos:,} out of ORF boundary ({transcript_id} ORF starts at RNA position {start_codon_first_bp_rna_pos:,} and ends in RNA position {stop_codon_last_bp_rna_pos:,}).")
+                return None
+            return rna_pos - start_codon_first_bp_rna_pos + 1
+
+    def orf_pos2rna_pos(self, transcript_id: str, orf_pos: int) -> int | None:
+        """Converts ORF (CDS) position to RNA position. 
+
+        Args:
+            transcript_id (str): ENST ID.
+            orf_pos (int): 1-based ORF (CDS) position.
+
+        Returns:
+            int | None: Corresponding 1-based rna position.
+        """
+        if not self.is_protein_coding_transcript(transcript_id):
+            print(f"{transcript_id} is not a protein coding transcript !!")
+            return None
+        
+        if (start_end_codons_info := self.start_and_stop_codons_pos(transcript_id)) is None:
+            return None
+        
+        # stop codon last bp rna pos - start codon first bp rna pos + 1
+        orf_size = (start_end_codons_info[1][1] + 2) - start_end_codons_info[0][1] + 1
+        #orf_size = max(x[1] for x in self.exon_map(transcript_id)['ORF_NT_region'])
+        if (orf_pos < 1) or (orf_pos > orf_size):
+            print(f"ORF position {orf_pos:,} out of boundary ({transcript_id} ORF contains {orf_size:,} bps) !!")
+            return None
+        
+        # rna position is the rna position of the first bp of the start codon + (orf_pos - 1)
+        return start_end_codons_info[0][1] + (orf_pos - 1)
+
+    def orf_pos2chrm_info(self, transcript_id: str, orf_pos: int) -> dict | None:
+        """Converts ORF (CDS) position to chromosome position. 
+
+        Args:
+            transcript_id (str): ENST ID.
+            orf_pos (int): 1-based RNA position.
+            chrm_path (str | None): Chromosome Fasta path.
+
+        Returns:
+            dict | None: Corresponding chromosome position information.
+        """
+        # convert ORF position to RNA position
+        if (rna_pos := self.orf_pos2rna_pos(transcript_id, orf_pos)) is None:
+            return None
+        return self.rna_pos2chrm_info(transcript_id, rna_pos)
 
     def aa_exon_info(self, transcript_id: str, aa_number: int) -> dict | None:
         """

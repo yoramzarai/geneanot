@@ -73,14 +73,13 @@ def test_gene_transcript_premrna_size(gene: str, transcript: str, expected: int)
     [
         # these two are encoded on the positive strand
         ("EGFR", "ENST00000275493", "MRPSGTAGAALLALLAALCPASRALEEKKVCQGTSNKL"),
-        #("AEBP1", "ENST00000223357", "MAAVRGAPLLSCLLALLALCPGGRPQTVLTDDEIEEFLEGFLSELEPEPREDDVEAPPPPEPTPRVRKAQAGGKPGKRPGTAAE"),
+        ("AEBP1", "ENST00000223357", "MAAVRGAPLLSCLLALLALCPGGRPQTVLTDDEIEEFLEGFLSELEPEPREDDVEAPPPPEPTPRVRKAQAGGKPGKRPGTAAE"),
         # IDH1 encoded on the negative strand
         ("IDH1", "ENST00000345146", "MSKKISGGSVVEMQGDEMTRIIWELIKEKLIFPYVELDLHSYDLGIENRDATNDQVTKDAAEAIKKHNVGVKCATITPDEKRVEEFKLKQMWKSPNGTIRNILGGTVFRE")
     ],
 )
 def test_gene_transcript_protein_seq(gene: str, transcript: str, expected_partial_protein_seq: str) -> None:
     g = get_homo_sapiens_object(gene)
-    #g.chrm_fasta_file = (f"Chromosome/Homo_sapiens.GRCh38.dna_sm.chromosome.{g.chrm}.fa")
     if (protein_seq := g.AA(transcript)) is None:
         raise ValueError
     assert protein_seq[:len(expected_partial_protein_seq)].upper() == expected_partial_protein_seq.upper()
@@ -131,7 +130,8 @@ def test_transcript_start_and_end(gene: str, transcript: str, expected: tuple[in
     "gene, transcript, expected",
     [
         ("EGFR", "ENST00000275493", (55_019_278, 55_205_615)),
-        ("IDH1", "ENST00000345146",(208_251_551, 208_237_081))
+        ("IDH1", "ENST00000345146",(208_251_551, 208_237_081)),
+        ("KLF16", "ENST00000250916",(1_863_497, 1_854_461)),
     ],
 )
 def test_transcript_start_end_chrm_codon(gene: str, transcript: str, expected: tuple[int,int]) -> None:
@@ -140,6 +140,21 @@ def test_transcript_start_end_chrm_codon(gene: str, transcript: str, expected: t
         raise ValueError(f"{transcript=} not recognized !!")
     start_codon_info, stop_codon_info = start_end_stop
     assert start_codon_info[0] == expected[0] and stop_codon_info[0] == expected[1]
+
+@pytest.mark.parametrize(
+    "gene, transcript, expected",
+    [
+        ("EGFR", "ENST00000275493", (262, 3892)),
+        ("IDH1", "ENST00000345146",(224, 1466)),
+        ("KLF16", "ENST00000250916",(83, 839)),
+    ],
+)
+def test_transcript_start_end_rna_codon(gene: str, transcript: str, expected: tuple[int,int]) -> None:
+    g = get_homo_sapiens_object(gene)
+    if (start_end_stop := g.start_and_stop_codons_pos(transcript)) is None:
+        raise ValueError(f"{transcript=} not recognized !!")
+    start_codon_info, stop_codon_info = start_end_stop
+    assert start_codon_info[1] == expected[0] and stop_codon_info[1] == expected[1]
 
 @pytest.mark.parametrize(
     "gene, transcript, chrm_pos, expected",
@@ -187,6 +202,48 @@ def test_map_rna_pos(gene: str, transcript: str, rna_pos: int, expected: tuple[i
 def test_query_rna_pos(gene: str, transcript: str, rna_pos: int, expected: dict) -> None:
     g = get_homo_sapiens_object(gene)
     assert g.rna_pos2chrm_info(transcript, rna_pos) == expected
+
+@pytest.mark.parametrize(
+    "gene, transcript, rna_pos, expected",
+    [
+        ("EGFR", "ENST00000275493", 1559, 1298),
+        ("IDH1", "ENST00000345146", 1071, 848),
+        ("IDH1", "ENST00000345146", 133, None),
+    ],
+)
+def test_query_rna_pos2orf_pos(gene: str, transcript: str, rna_pos: int, expected: int | None) -> None:
+    g = get_homo_sapiens_object(gene)
+    if (v := g.rna_pos2orf_pos(transcript, rna_pos)) is None:
+        assert expected is None
+    else:
+        assert v == expected
+
+@pytest.mark.parametrize(
+    "gene, transcript, orf_pos, expected",
+    [
+        ("EGFR", "ENST00000275493", 1299, 1560),
+        ("IDH1", "ENST00000345146", 1153, 1376),
+        ("IDH1", "ENST00000345146", 1353, None),
+    ],
+)
+def test_query_orf_pos2rna_pos(gene: str, transcript: str, orf_pos: int, expected: int | None) -> None:
+    g = get_homo_sapiens_object(gene)
+    if (v := g.orf_pos2rna_pos(transcript, orf_pos)) is None:
+        assert expected is None
+    else:
+        assert v == expected
+
+@pytest.mark.parametrize(
+    "gene, transcript, orf_pos, expected",
+    [
+        ("EGFR", "ENST00000275493", 124, {'chrm_pos': 55142321, 'region': 'Exon_2', 'region_pos': 36, 'dist_from_region_boundary': (35, 116), 'segment': 'ORF', 'pos_in_segment': 124, 'NT': 'G', 'codon_number': 42, 'nt_in_codon': 1, 'codon': 'GGC', 'aa': 'G'}),
+        ("EGFR", "ENST00000275493", 1918, {'chrm_pos': 55171212, 'region': 'Exon_16', 'region_pos': 38, 'dist_from_region_boundary': (37, 1), 'segment': 'ORF', 'pos_in_segment': 1918, 'NT': 'G', 'codon_number': 640, 'nt_in_codon': 1, 'codon': 'GGG', 'aa': 'G'}),
+        ("IDH1", "ENST00000345146", 699, {'chrm_pos': 208242145, 'region': 'Exon_7', 'region_pos': 1, 'dist_from_region_boundary': (0, 151), 'segment': 'ORF', 'pos_in_segment': 699, 'NT': 'G', 'codon_number': 233, 'nt_in_codon': 3, 'codon': 'AAG', 'aa': 'K'}),
+        ("IDH1", "ENST00000345146", 2, {'chrm_pos': 208251550, 'region': 'Exon_3', 'region_pos': 18, 'dist_from_region_boundary': (17, 120), 'segment': 'ORF', 'pos_in_segment': 2, 'NT': 'T', 'codon_number': 1, 'nt_in_codon': 2, 'codon': 'ATG', 'aa': 'M'}),
+    ],
+)
+def test_query_orf_pos2chrm_info(gene: str, transcript: str, orf_pos: int, expected: dict | None) -> None:
+    pass
 
 @pytest.mark.parametrize(
     "gene, transcript, exon_number, nt_number, expected",
