@@ -2,6 +2,9 @@
 Activate environment and run "pytest".
 
 The "expected" in the tests below are based on release 113 (Homo_sapiens.GRCh38.113.gff3.gz).
+
+Note:
+1. The chromosomes are not commit to the repository, thus this will not work as a github action.
 """
 from pathlib import Path
 

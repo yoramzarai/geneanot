@@ -1,0 +1,26 @@
+name: few basic actions
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a simple command
+        run: echo "The code has been pushed successfully!"
+      - name: File structure check
+        run: ls -la
+        
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Markdown links check
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - name: Echo completion
+        run: echo "Markdown links check completed!"
