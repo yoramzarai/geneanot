@@ -24,3 +24,31 @@ jobs:
         uses: gaurav-nelson/github-action-markdown-link-check@v1
       - name: Echo completion
         run: echo "Markdown links check completed!"
+
+  # for this to work - need to prepare a tests/test_no_chromosome.py file with tests that
+  # do not require chromosome data as it is not commited
+  # python-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Python 3.10
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.10'
+
+  #     - name: Install uv
+  #       run: pip install uv
+
+  #     - name: Set up environment with uv
+  #       run: |
+  #         uv sync
+  #         source .venv/bin/activate
+  #         pip install -e ./src/geneanot/  # Install your package in editable mode
+
+  #     - name: Run tests with pytest using uv run
+  #       run: uv run pytest/test_no_chromosome.py
+      
+  #     - name: Echo completion
+  #       run: echo "Python tests completed!"
